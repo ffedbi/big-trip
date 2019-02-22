@@ -1,7 +1,7 @@
 # Личный проект «Большое путешествие» [![Build status][travis-image]][travis-url]
 
 * Студент: [Фёдор Базанов](https://up.htmlacademy.ru/ecmascript/8/user/483955).
-* Наставник: `Неизвестно`.
+* Наставник: [Антон Куляпин](https://htmlacademy.ru/profile/id934537).
 
 ---
 
