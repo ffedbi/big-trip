@@ -1,11 +1,11 @@
-import {getRandomNumber, clearSection} from './utils';
+import {getRandomNumber, getRandomArrayItem, clearSection} from './utils';
 import createFilter from './make-filter';
 import createPoints from './make-point';
 import {DATA_FILTERS, DATA_POINTS} from './data';
 
 const STATE = {
-  startPointsNum: 7,
-  minPointsNum: 1,
+  startNumberPoints: 7,
+  minNumberPoints: 1,
   startDataIndex: 0
 };
 
@@ -25,12 +25,12 @@ const createNumPoints = (data, num, section) => {
 clearSection(FILTERS_SECTION);
 clearSection(POINT_SECTION);
 createFilters(DATA_FILTERS, FILTERS_SECTION);
-createNumPoints(DATA_POINTS[STATE.startDataIndex], STATE.startPointsNum, POINT_SECTION);
+createNumPoints(DATA_POINTS[STATE.startDataIndex], STATE.startNumberPoints, POINT_SECTION);
 
 FILTERS_SECTION.addEventListener(`change`, (e) => {
   e.preventDefault();
   if (e.target.tagName.toLowerCase() === `input`) {
     clearSection(POINT_SECTION);
-    createNumPoints(DATA_POINTS[STATE.startDataIndex], getRandomNumber(STATE.minPointsNum, STATE.startPointsNum), POINT_SECTION);
+    createNumPoints(getRandomArrayItem(DATA_POINTS), getRandomNumber(STATE.minNumberPoints, STATE.startNumberPoints), POINT_SECTION);
   }
 });

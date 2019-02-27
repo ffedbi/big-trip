@@ -7,8 +7,8 @@ module.exports = {
   mode: `development`,
   entry: `./src/js/main.js`,
   output: {
-    filename: `bundle.js`,
-    path: path.join(__dirname, `public/js`)
+    filename: `js/bundle.js`,
+    path: path.join(__dirname, `public`)
   },
   devtool: `source-map`,
   module: {
@@ -20,7 +20,6 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      filename: `../index.html`,
       template: `./src/index.html`,
     })],
   devServer: {
