@@ -14,8 +14,8 @@ const getRandomNumberOffers = (offers) => {
 const getRandomDescription = (text) => {
   let arrStr = text.split(`. `);
   let result = new Set();
-  let size = getRandomNumber(1, 3);
-  for (let item = size; item > 0; item--) {
+  let size = getRandomNumber(0, 3);
+  for (let item = 0; item <= size; item++) {
     result.add(getRandomArrayItem(arrStr));
   }
   return [...result].join(` `);
@@ -38,11 +38,11 @@ const getTimePoints = () => {
   return [timeStart, timeEnd];
 };
 
-export const makeRandomPoint = () => ({
+export const makeRandomDataPoint = () => ({
   type: getRandomTypePoint(),
   city: getRandomArrayItem(DATA_POINTS.CITIES),
   description: getRandomDescription(DATA_POINTS.DESCRIPTION_TEXT),
-  picture: DATA_POINTS.PICTURE_URL,
+  picture: `http://picsum.photos/300/150?r=${Math.random()}`,
   offers: new Set([...getRandomNumberOffers(DATA_POINTS.OFFERS)]),
   timeline: getTimePoints(),
   duration: `2h 02m`,
