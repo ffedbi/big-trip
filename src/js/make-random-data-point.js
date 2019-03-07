@@ -42,7 +42,7 @@ export const makeRandomDataPoint = () => ({
   type: getRandomTypePoint(),
   city: getRandomArrayItem(DATA_POINTS.CITIES),
   description: getRandomDescription(DATA_POINTS.DESCRIPTION_TEXT),
-  picture: `http://picsum.photos/300/150?r=${Math.random()}`,
+  picture: `http://picsum.photos/100/100?r=${Math.random()}`,
   offers: new Set([...getRandomNumberOffers(DATA_POINTS.OFFERS)]),
   timeline: getTimePoints(),
   duration: `2h 02m`,
