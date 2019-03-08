@@ -1,47 +1,32 @@
-export const DATA_POINTS = [
-  {
-    icon: `🚕`,
-    title: `Taxi to Airport`,
-    timeline: [`10:00`, `11:00`],
-    duration: `1h 30m`,
-    price: `&euro;&nbsp;20`,
-    offers: [`Order UBER +&euro;&nbsp;20`, `Upgrade to business +&euro;&nbsp;20`],
-  },
-  {
-    icon: `✈️`,
-    title: `Flight to Geneva`,
-    timeline: [`10:00`, `11:00`],
-    duration: `1h 30m`,
-    price: `&euro;&nbsp;20`,
-    offers: [`Upgrade to business +&euro;&nbsp;20`, `Select meal +&euro;&nbsp;20`],
-  },
-  {
-    icon: `🚕`,
-    title: `Drive to Chamonix`,
-    timeline: [`10:00`, `11:00`],
-    duration: `1h 30m`,
-    price: `&euro;&nbsp;20`,
-    offers: [`Rent a car +&euro;&nbsp;200`, ``],
-  },
-  {
-    icon: `🏨`,
-    title: `Check into a hotel`,
-    timeline: [`10:00`, `11:00`],
-    duration: `1h 30m`,
-    price: `&euro;&nbsp;20`,
-    offers: [`Add breakfast +&euro;&nbsp;20`, ``],
-  },
-];
-
 export const DATA_FILTERS = [
   {
-    name: `Everything`,
+    description: `Everything`,
     isChecked: true,
   },
   {
-    name: `Future`,
+    description: `Future`,
   },
   {
-    name: `Past`,
+    description: `Past`,
   },
 ];
+
+export const DATA_POINTS = {
+  POINTS_TYPE: {
+    'Taxi': `🚕`,
+    'Bus': `🚌`,
+    'Train': `🚂`,
+    'Ship': `🛳️`,
+    'Transport': `🚊`,
+    'Drive': `🚗`,
+    'Flight': `✈️`,
+    'Check-in': `🏨`,
+    'Sightseeing': `🏛️`,
+    'Restaurant': `🍴`,
+  },
+  CITIES: [`Amsterdam`, `Geneva`, `Chamonix`, `New York`, `London`, `Kazan`, `Minsk`, `Istanbul`, `Boston`],
+  OFFERS: [[`Add luggage`, 20], [`Switch to comfort class`, 30], [`Add meal`, 15], [`Choose seats`, 45]],
+  DESCRIPTION_TEXT: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras aliquet varius magna, non porta ligula feugiat eget. Fusce tristique felis at fermentum pharetra. Aliquam id orci ut lectus varius viverra. Nullam nunc ex, convallis sed finibus eget, sollicitudin eget ante. Phasellus eros mauris, condimentum sed nibh vitae, sodales efficitur ipsum. Sed blandit, eros vel aliquam faucibus, purus ex euismod diam, eu luctus nunc ante ut dui. Sed sed nisi sed augue convallis suscipit in sed felis. Aliquam erat volutpat. Nunc fermentum tortor ac porta dapibus. In rutrum ac purus sit amet tempus.`,
+};
+
+
