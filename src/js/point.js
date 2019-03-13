@@ -65,6 +65,7 @@ export class Point {
   }
 
   render() {
+    this.destroy();
     this._element = createDOMElementFromHtml(this.template);
     this._bind();
     return this._element;

@@ -48,7 +48,7 @@ const getArrRandomPhoto = () => {
   return result;
 };
 
-export const makeRandomDataPoint = () => ({
+export const makeRandomPointData = () => ({
   type: getRandomTypePoint(),
   city: getRandomArrayItem(DATA_POINTS.CITIES),
   description: getRandomDescription(DATA_POINTS.DESCRIPTION_TEXT),

@@ -1,6 +1,6 @@
 import {getRandomNumber, clearSection} from './utils';
 import {makeHtmlFilter} from './make-html-filter';
-import {makeRandomDataPoint} from "./make-random-data-point";
+import {makeRandomPointData} from "./make-random-point-data";
 import {DATA_FILTERS} from './data';
 import {Point} from "./point";
 import {Trip} from "./trip";
@@ -20,9 +20,9 @@ const renderFilters = (data, section) => {
 
 const renderNumPoints = (num, section) => {
   for (let i = 0; i < num; i++) {
-    let dataTest = makeRandomDataPoint();
-    let point = new Point(dataTest);
-    let trip = new Trip(dataTest);
+    let data = makeRandomPointData();
+    let point = new Point(data);
+    let trip = new Trip(data);
 
     point.onClick = () => {
       trip.render();

@@ -164,6 +164,7 @@ export class Trip {
   }
 
   render() {
+    this.destroy();
     this._element = createDOMElementFromHtml(this.template);
     this._bind();
 
