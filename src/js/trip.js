@@ -1,7 +1,8 @@
-import {createDOMElementFromHtml} from "./utils";
+import {Component} from "./component";
 
-export class Trip {
+export class Trip extends Component {
   constructor(data) {
+    super();
     this._type = data.type;
     this._city = data.city;
     this._price = data.price;
@@ -10,7 +11,6 @@ export class Trip {
     this._description = data.description;
     this._picture = data.picture;
 
-    this._element = null;
     this._onSubmit = null;
     this._onDelete = null;
 
@@ -37,32 +37,18 @@ export class Trip {
     }
   }
 
+  set onSubmit(fn) {
+    this._onSubmit = fn;
+  }
+
   _onDeleteBtnClick() {
     if (typeof this._onDelete === `function`) {
       this._onDelete();
     }
   }
 
-  _onDeleteButtonClick() {
-    return (typeof this._onDelete === `function`) && this._onDelete();
-  }
-
   set onDelete(fn) {
     this._onDelete = fn;
-  }
-
-  _bind() {
-    if (this._element) {
-      this._element.querySelector(`.point__button--save`).addEventListener(`click`, this._onSubmitBtnClick);
-      this._element.querySelector(`button[type="reset"]`).addEventListener(`click`, this._onDeleteBtnClick);
-    }
-  }
-
-  _unbind() {
-    if (this._element) {
-      this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
-      this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
-    }
   }
 
   get template() {
@@ -155,25 +141,18 @@ export class Trip {
   </article>`.trim();
   }
 
-  get element() {
-    return this._element;
+  _bind() {
+    if (this._element) {
+      this._element.querySelector(`.point__button--save`).addEventListener(`click`, this._onSubmitBtnClick);
+      this._element.querySelector(`button[type="reset"]`).addEventListener(`click`, this._onDeleteBtnClick);
+    }
   }
 
-  set onSubmit(fn) {
-    this._onSubmit = fn;
-  }
-
-  render() {
-    this.destroy();
-    this._element = createDOMElementFromHtml(this.template);
-    this._bind();
-
-    return this._element;
-  }
-
-  destroy() {
-    this._unbind();
-    this._element = null;
+  _unbind() {
+    if (this._element) {
+      this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
+      this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
+    }
   }
 }
 

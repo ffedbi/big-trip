@@ -1,7 +1,8 @@
-import {createDOMElementFromHtml} from "./utils";
+import {Component} from "./component";
 
-export class Point {
+export class Point extends Component {
   constructor(data) {
+    super();
     this._type = data.type;
     this._city = data.city;
     this._timeline = data.timeline;
@@ -9,7 +10,6 @@ export class Point {
     this._price = data.price;
     this._offers = data.offers;
 
-    this._element = null;
     this._onElement = null;
     this._onClickPointElement = this._onClickPointElement.bind(this);
   }
@@ -56,24 +56,8 @@ export class Point {
         </article>`.trim();
   }
 
-  get element() {
-    return this._element;
-  }
-
   set onClick(fn) {
     this._onElement = fn;
-  }
-
-  render() {
-    this.destroy();
-    this._element = createDOMElementFromHtml(this.template);
-    this._bind();
-    return this._element;
-  }
-
-  destroy() {
-    this._unbind();
-    this._element = null;
   }
 }
 
