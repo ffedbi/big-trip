@@ -1,13 +1,14 @@
 import {getRandomNumber, clearSection} from './utils';
 import {makeHtmlFilter} from './make-html-filter';
-import {makeHtmlPoint} from './make-html-point';
-import {makeRandomDataPoint} from "./make-random-data-point";
+import {makeRandomPointData} from "./make-random-point-data";
 import {DATA_FILTERS} from './data';
+import {Point} from "./point";
+import {Trip} from "./trip";
 
 const STATE = {
   startNumberPoints: 7,
   minNumberPoints: 1,
-  startDataIndex: 0
+  startDataIndex: 0,
 };
 
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
@@ -19,7 +20,30 @@ const renderFilters = (data, section) => {
 
 const renderNumPoints = (num, section) => {
   for (let i = 0; i < num; i++) {
-    section.insertAdjacentHTML(`beforeend`, makeHtmlPoint(makeRandomDataPoint()));
+    let data = makeRandomPointData();
+    let point = new Point(data);
+    let trip = new Trip(data);
+
+    point.onClick = () => {
+      trip.render();
+      section.replaceChild(trip.element, point.element);
+      point.destroy();
+    };
+
+    trip.onSubmit = () => {
+      point.render();
+      section.replaceChild(point.element, trip.element);
+      trip.destroy();
+    };
+
+    trip.onDelete = () => {
+      point.render();
+      section.replaceChild(point.element, trip.element);
+      trip.destroy();
+    };
+
+    point.render();
+    section.appendChild(point.element);
   }
 };
 
@@ -35,3 +59,4 @@ FILTERS_SECTION.addEventListener(`change`, (e) => {
     renderNumPoints(getRandomNumber(STATE.minNumberPoints, STATE.startNumberPoints), POINT_SECTION);
   }
 });
+

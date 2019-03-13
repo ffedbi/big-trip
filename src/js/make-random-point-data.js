@@ -1,5 +1,6 @@
 import {getRandomArrayItem, getRandomNumber} from "./utils";
 import {DATA_POINTS} from "./data";
+
 const TIME_SHIFT = 2 * 60 * 60 * 1000;
 const TIME_OPTIONS = {hour: `numeric`, minute: `numeric`, hour12: false};
 
@@ -25,7 +26,7 @@ const getRandomTypePoint = () => {
   let resArr = getRandomArrayItem(Object.entries(DATA_POINTS.POINTS_TYPE));
   return {
     typeName: resArr[0],
-    icon: resArr[1]
+    icon: resArr[1],
   };
 };
 
@@ -38,11 +39,20 @@ const getTimePoints = () => {
   return [timeStart, timeEnd];
 };
 
-export const makeRandomDataPoint = () => ({
+const getArrRandomPhoto = () => {
+  let result = [];
+  for (let i = 0; i < getRandomNumber(3, 5); i++) {
+    result[i] = `http://picsum.photos/100/100?r=${Math.random()}`;
+  }
+
+  return result;
+};
+
+export const makeRandomPointData = () => ({
   type: getRandomTypePoint(),
   city: getRandomArrayItem(DATA_POINTS.CITIES),
   description: getRandomDescription(DATA_POINTS.DESCRIPTION_TEXT),
-  picture: `http://picsum.photos/100/100?r=${Math.random()}`,
+  picture: getArrRandomPhoto(),
   offers: new Set([...getRandomNumberOffers(DATA_POINTS.OFFERS)]),
   timeline: getTimePoints(),
   duration: `2h 02m`,

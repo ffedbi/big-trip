@@ -14,5 +14,5 @@ node_modules/
 # Папка с собранными файлами проекта
 build/
 public/js
-public/*.html
+
 
