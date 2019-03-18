@@ -75,7 +75,6 @@ export class Trip extends Component {
     const pointMapper = Trip.createMapper(entry);
     for (const pair of formData.entries()) {
       const [property, value] = pair;
-      //console.log(pair);
       if (pointMapper[property]) {
         pointMapper[property](value);
       }
@@ -120,7 +119,6 @@ export class Trip extends Component {
 
   _onChangeType(e) {
     if (e.target.tagName.toLowerCase() === `input`) {
-      console.log(e.target.value);
       this._type = {
         icon: `✈️`,
         typeName: e.target.value,
