@@ -30,7 +30,17 @@ const renderNumPoints = (num, section) => {
       point.destroy();
     };
 
-    trip.onSubmit = () => {
+    trip.onSubmit = (newData) => {
+      console.log(`main - `, newData)
+      data.type = {
+        icon: newData.icon,
+        typeName: newData.typeName,
+      };
+      data.city = newData.city;
+      data.offers = newData.offers;
+      data.price = newData.price;
+
+      point.update(data);
       point.render();
       section.replaceChild(point.element, trip.element);
       trip.destroy();

@@ -1,4 +1,5 @@
 import {Component} from "./component";
+import flatpickr from "flatpickr";
 
 export class Trip extends Component {
   constructor(data) {
@@ -16,6 +17,7 @@ export class Trip extends Component {
 
     this._onSubmitBtnClick = this._onSubmitBtnClick.bind(this);
     this._onDeleteBtnClick = this._onDeleteBtnClick.bind(this);
+    this._onChangeType = this._onChangeType.bind(this);
   }
 
   _makeHtmlButtonOffers() {
@@ -32,9 +34,53 @@ export class Trip extends Component {
 
   _onSubmitBtnClick(e) {
     e.preventDefault();
+    const formData = new FormData(this._element.querySelector(`form`));
+    const newData = this._processForm(formData);
     if (typeof this._onSubmit === `function`) {
-      this._onSubmit();
+      this._onSubmit(newData);
     }
+
+    this.update(newData);
+  }
+
+  static createMapper(target) {
+    return {
+      offer(value) {
+        target.offers.push(value);
+      },
+      destination(value) {
+        target.city = value;
+      },
+      price(value) {
+        target.price = value;
+      },
+      [`travel-way`](value) {
+        target.type.typeName = value;
+      },
+    };
+  }
+
+  _processForm(formData) {
+    const entry = {
+      type: {
+        icon: ``,
+        typeName: ``,
+      },
+      offers: [],
+      price: null,
+      duration: new Date(),
+      city: ``,
+    };
+
+    const pointMapper = Trip.createMapper(entry);
+    for (const pair of formData.entries()) {
+      const [property, value] = pair;
+      //console.log(pair);
+      if (pointMapper[property]) {
+        pointMapper[property](value);
+      }
+    }
+    return entry;
   }
 
   set onSubmit(fn) {
@@ -49,6 +95,58 @@ export class Trip extends Component {
 
   set onDelete(fn) {
     this._onDelete = fn;
+  }
+
+  _bind() {
+    if (this._element) {
+      this._element.querySelector(`.point__button--save`).addEventListener(`click`, this._onSubmitBtnClick);
+      this._element.querySelector(`button[type="reset"]`).addEventListener(`click`, this._onDeleteBtnClick);
+
+      flatpickr(this._element.querySelector(`.point__time .point__input`), {
+        locale: {
+          rangeSeparator: ` — `,
+        },
+        mode: `range`,
+        enableTime: true,
+        altInput: true,
+        defaultDate: [this._timeline[0], this._timeline[1]],
+        altFormat: `h:i K`,
+        dateFormat: `h:i K`,
+      });
+
+      this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
+    }
+  }
+
+  _onChangeType(e) {
+    if (e.target.tagName.toLowerCase() === `input`) {
+      console.log(e.target.value);
+      this._type = {
+        icon: `✈️`,
+        typeName: e.target.value,
+      };
+    }
+  }
+
+  _unbind() {
+    if (this._element) {
+      this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
+      this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
+
+      flatpickr(this._element.querySelector(`.point__time .point__input`)).destroy();
+      this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
+    }
+  }
+
+  update(data) {
+    this._type = {
+      icon: data.icon,
+      typeName: data.typeName,
+    };
+    this._city = data.city;
+    this._timeline = [data.timeline, data.timeline];
+    this._price = data.price;
+    this._offers = data.offers;
   }
 
   get template() {
@@ -74,7 +172,7 @@ export class Trip extends Component {
               <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-train" name="travel-way" value="train">
               <label class="travel-way__select-label" for="travel-way-train">🚂 train</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-flight" name="travel-way" value="flight" checked>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-flight" name="travel-way" value="flight">
               <label class="travel-way__select-label" for="travel-way-flight">✈️ flight</label>
             </div>
 
@@ -82,7 +180,7 @@ export class Trip extends Component {
               <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-check-in" name="travel-way" value="check-in">
               <label class="travel-way__select-label" for="travel-way-check-in">🏨 check-in</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-sightseeing" name="travel-way" value="sight-seeing">
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-sightseeing" name="travel-way" value="sight-seeing" checked>
               <label class="travel-way__select-label" for="travel-way-sightseeing">🏛 sightseeing</label>
             </div>
           </div>
@@ -101,7 +199,8 @@ export class Trip extends Component {
 
         <label class="point__time">
           choose time
-          <input class="point__input" type="text" value="${this._timeline[0]} — ${this._timeline[1]}" name="time" placeholder="00:00 — 00:00">
+          <!--<input class="point__input" type="text" value="${this._timeline[0]} — ${this._timeline[1]}" name="time" placeholder="00:00 — 00:00">-->
+          <input class="point__input" type="text" value="${this._timeline}" name="time" placeholder="00:00 — 00:00">
         </label>
 
         <label class="point__price">
@@ -139,20 +238,6 @@ export class Trip extends Component {
       </section>
     </form>
   </article>`.trim();
-  }
-
-  _bind() {
-    if (this._element) {
-      this._element.querySelector(`.point__button--save`).addEventListener(`click`, this._onSubmitBtnClick);
-      this._element.querySelector(`button[type="reset"]`).addEventListener(`click`, this._onDeleteBtnClick);
-    }
-  }
-
-  _unbind() {
-    if (this._element) {
-      this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
-      this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
-    }
   }
 }
 

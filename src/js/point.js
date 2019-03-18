@@ -59,5 +59,16 @@ export class Point extends Component {
   set onClick(fn) {
     this._onElement = fn;
   }
+
+  update(data) {
+    this._type = {
+      icon: data.icon,
+      typeName: data.typeName,
+    };
+    this._city = data.city;
+    this._timeline = [data.timeline, data.timeline];
+    this._price = data.price;
+    this._offers = data.offers;
+  }
 }
 
