@@ -108,7 +108,6 @@ export default class Trip extends Component {
     const pointMapper = Trip.createMapper(entry);
     for (const pair of formData.entries()) {
       const [property, value] = pair;
-      /* console.log(pair); */
       if (pointMapper[property]) {
         pointMapper[property](value);
       }

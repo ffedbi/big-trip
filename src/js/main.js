@@ -31,7 +31,6 @@ const renderNumPoints = (num, section) => {
     };
 
     trip.onSubmit = (newData) => {
-      console.log(newData)
       data.type = newData.type;
       data.city = newData.city;
       data.offers = newData.offers;
