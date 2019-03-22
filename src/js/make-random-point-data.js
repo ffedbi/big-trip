@@ -1,8 +1,6 @@
 import {getRandomArrayItem, getRandomNumber} from "./utils";
 import {DATA_POINTS} from "./data";
-
 const TIME_SHIFT = 2 * 60 * 60 * 1000;
-const TIME_OPTIONS = {hour: `numeric`, minute: `numeric`, hour12: false};
 
 const getRandomNumberOffers = (offers) => {
   const arrayOffers = [];
@@ -30,13 +28,10 @@ const getRandomTypePoint = () => {
   };
 };
 
-const convertTime = (time, options, locale = `en-US`) => new Date(time).toLocaleString(locale, options);
-
 const getTimePoints = () => {
   const timePoint = Date.now();
-  const timeStart = convertTime(timePoint, TIME_OPTIONS);
-  const timeEnd = convertTime(timePoint + TIME_SHIFT, TIME_OPTIONS);
-  return [timeStart, timeEnd];
+  const timeEnd = timePoint + TIME_SHIFT;
+  return [timePoint, timeEnd];
 };
 
 const getArrRandomPhoto = () => {
@@ -48,7 +43,8 @@ const getArrRandomPhoto = () => {
   return result;
 };
 
-export const makeRandomPointData = () => ({
+export const makeRandomPointData = (num) => ({
+  id: num,
   type: getRandomTypePoint(),
   city: getRandomArrayItem(DATA_POINTS.CITIES),
   description: getRandomDescription(DATA_POINTS.DESCRIPTION_TEXT),

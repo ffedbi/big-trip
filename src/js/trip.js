@@ -1,9 +1,14 @@
-import {Component} from "./component";
+import Component from "./component";
 import flatpickr from "flatpickr";
+import {DATA_POINTS} from "./data";
+import moment from "moment";
 
-export class Trip extends Component {
+
+export default class Trip extends Component {
   constructor(data) {
     super();
+
+    this._id = data.id;
     this._type = data.type;
     this._city = data.city;
     this._price = data.price;
@@ -18,13 +23,30 @@ export class Trip extends Component {
     this._onSubmitBtnClick = this._onSubmitBtnClick.bind(this);
     this._onDeleteBtnClick = this._onDeleteBtnClick.bind(this);
     this._onChangeType = this._onChangeType.bind(this);
+    this._onChangeTimeStart = this._onChangeTimeStart.bind(this);
+    this._onChangeTimeEnd = this._onChangeTimeEnd.bind(this);
+    this._onChangePrice = this._onChangePrice.bind(this);
+  }
+
+  _onChangePrice(e) {
+    this._price = e.target.value;
+  }
+
+  _onChangeTimeStart() {
+    const valueInput = this._element.querySelector(`input[name="time-start"]`).value;
+    this._timeline[0] = new Date(moment(valueInput, `h:mm`)).getTime();
+  }
+
+  _onChangeTimeEnd() {
+    const valueInput = this._element.querySelector(`input[name="time-end"]`).value;
+    this._timeline[1] = new Date(moment(valueInput, `h:mm`)).getTime();
   }
 
   _makeHtmlButtonOffers() {
     let str = ``;
     for (let item of this._offers) {
-      str += `<input class="point__offers-input visually-hidden" type="checkbox" id="${item[0]}" name="offer" value="${item[0]}">
-            <label for="${item[0]}" class="point__offers-label">
+      str += `<input class="point__offers-input visually-hidden" type="checkbox" id="${item[0]}-${this._id}" name="offer" value="${item[0]}-${item[1]}" checked>
+            <label for="${item[0]}-${this._id}" class="point__offers-label">
               <span class="point__offer-service">${item[0]}</span> + €<span class="point__offer-price">${item[1]}</span>
             </label>`.trim();
     }
@@ -46,7 +68,8 @@ export class Trip extends Component {
   static createMapper(target) {
     return {
       offer(value) {
-        target.offers.push(value);
+        const result = value.split(`-`);
+        target.offers.add([result[0], result[1]]);
       },
       destination(value) {
         target.city = value;
@@ -55,26 +78,37 @@ export class Trip extends Component {
         target.price = value;
       },
       [`travel-way`](value) {
-        target.type.typeName = value;
+        target.type = {
+          icon: DATA_POINTS.POINTS_TYPE[value],
+          typeName: value,
+        };
       },
+      [`time-start`](value) {
+        target.timeline[0] = new Date(moment(value, `h:mm`)).getTime();
+      },
+      [`time-end`](value) {
+        target.timeline[1] = new Date(moment(value, `h:mm`)).getTime();
+      },
+      /* [`total-price`](value) {
+      } */
     };
   }
 
   _processForm(formData) {
     const entry = {
-      type: {
-        icon: ``,
-        typeName: ``,
-      },
-      offers: [],
+      type: this._type,
+      offers: new Set(),
+      timeline: [],
       price: null,
       duration: new Date(),
       city: ``,
+      totalPrice: 0,
     };
 
     const pointMapper = Trip.createMapper(entry);
     for (const pair of formData.entries()) {
       const [property, value] = pair;
+      /* console.log(pair); */
       if (pointMapper[property]) {
         pointMapper[property](value);
       }
@@ -100,29 +134,28 @@ export class Trip extends Component {
     if (this._element) {
       this._element.querySelector(`.point__button--save`).addEventListener(`click`, this._onSubmitBtnClick);
       this._element.querySelector(`button[type="reset"]`).addEventListener(`click`, this._onDeleteBtnClick);
+      this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
+      this._element.querySelector(`input[name="price"]`).addEventListener(`change`, this._onChangePrice);
 
-      flatpickr(this._element.querySelector(`.point__time .point__input`), {
-        locale: {
-          rangeSeparator: ` — `,
-        },
-        mode: `range`,
+      flatpickr(this._element.querySelector(`.point__time input[name="time-start"]`), {
         enableTime: true,
         altInput: true,
-        defaultDate: [this._timeline[0], this._timeline[1]],
+        noCalendar: true,
+        defaultDate: [this._timeline[0]],
         altFormat: `h:i K`,
         dateFormat: `h:i K`,
+        onClose: this._onChangeTimeStart,
       });
 
-      this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
-    }
-  }
-
-  _onChangeType(e) {
-    if (e.target.tagName.toLowerCase() === `input`) {
-      this._type = {
-        icon: `✈️`,
-        typeName: e.target.value,
-      };
+      flatpickr(this._element.querySelector(`.point__time input[name="time-end"]`), {
+        enableTime: true,
+        altInput: true,
+        noCalendar: true,
+        defaultDate: [this._timeline[1]],
+        altFormat: `h:i K`,
+        dateFormat: `h:i K`,
+        onClose: this._onChangeTimeEnd,
+      });
     }
   }
 
@@ -130,25 +163,38 @@ export class Trip extends Component {
     if (this._element) {
       this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
       this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
-
-      flatpickr(this._element.querySelector(`.point__time .point__input`)).destroy();
       this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
+      flatpickr(this._element.querySelector(`.point__time input[name="time-start"]`)).destroy();
+      flatpickr(this._element.querySelector(`.point__time input[name="time-end"]`)).destroy();
     }
   }
 
+  _onChangeType(e) {
+    if (e.target.tagName.toLowerCase() === `input`) {
+      let value = e.target.value;
+      this._type = {typeName: value, icon: DATA_POINTS.POINTS_TYPE[value]};
+      this._partialUpdate();
+    }
+  }
+
+  _partialUpdate() {
+    this._unbind();
+    const oldElem = this._element;
+    this._element.parentNode.replaceChild(this.render(), oldElem);
+    oldElem.remove();
+    this._bind();
+  }
+
   update(data) {
-    this._type = {
-      icon: data.icon,
-      typeName: data.typeName,
-    };
+    this._type = data.type;
     this._city = data.city;
-    this._timeline = [data.timeline, data.timeline];
+    this._timeline = data.timeline;
     this._price = data.price;
     this._offers = data.offers;
   }
 
   get template() {
-    return `<article class="point">
+    return `<article class="point" id="${this._id}">
     <form action="" method="get">
       <header class="point__header">
         <label class="point__date">
@@ -161,25 +207,25 @@ export class Trip extends Component {
           <input type="checkbox" class="travel-way__toggle visually-hidden" id="travel-way__toggle">
           <div class="travel-way__select">
             <div class="travel-way__select-group">
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-taxi" name="travel-way" value="taxi">
-              <label class="travel-way__select-label" for="travel-way-taxi">🚕 taxi</label>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-taxi-${this._id}" name="travel-way" value="taxi" ${this._type.typeName === `taxi` ? `checked` : ``}>
+              <label class="travel-way__select-label" for="travel-way-taxi-${this._id}">🚕 taxi</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-bus" name="travel-way" value="bus">
-              <label class="travel-way__select-label" for="travel-way-bus">🚌 bus</label>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-bus-${this._id}" name="travel-way" value="bus" ${this._type.typeName === `bus` ? `checked` : ``}>
+              <label class="travel-way__select-label" for="travel-way-bus-${this._id}">🚌 bus</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-train" name="travel-way" value="train">
-              <label class="travel-way__select-label" for="travel-way-train">🚂 train</label>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-train-${this._id}" name="travel-way" value="train" ${this._type.typeName === `train` ? `checked` : ``}>
+              <label class="travel-way__select-label" for="travel-way-train-${this._id}">🚂 train</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-flight" name="travel-way" value="flight">
-              <label class="travel-way__select-label" for="travel-way-flight">✈️ flight</label>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-flight-${this._id}" name="travel-way" value="flight" ${this._type.typeName === `flight` ? `checked` : ``}>
+              <label class="travel-way__select-label" for="travel-way-flight-${this._id}">✈️ flight</label>
             </div>
 
             <div class="travel-way__select-group">
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-check-in" name="travel-way" value="check-in">
-              <label class="travel-way__select-label" for="travel-way-check-in">🏨 check-in</label>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-check-in-${this._id}" name="travel-way" value="check-in" ${this._type.typeName === `check-in` ? `checked` : ``}>
+              <label class="travel-way__select-label" for="travel-way-check-in-${this._id}">🏨 check-in</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-sightseeing" name="travel-way" value="sight-seeing" checked>
-              <label class="travel-way__select-label" for="travel-way-sightseeing">🏛 sightseeing</label>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-sightseeing-${this._id}" name="travel-way" value="sight-seeing" ${this._type.typeName === `sight-seeing` ? `checked` : ``}>
+              <label class="travel-way__select-label" for="travel-way-sightseeing-${this._id}">🏛 sightseeing</label>
             </div>
           </div>
         </div>
@@ -197,8 +243,8 @@ export class Trip extends Component {
 
         <label class="point__time">
           choose time
-          <!--<input class="point__input" type="text" value="${this._timeline[0]} — ${this._timeline[1]}" name="time" placeholder="00:00 — 00:00">-->
-          <input class="point__input" type="text" value="${this._timeline}" name="time" placeholder="00:00 — 00:00">
+          <input class="point__input" type="text" value="${this._timeline[0]}" name="time-start" placeholder="${this._timeline[0]}">
+          <input class="point__input" type="text" value="${this._timeline[1]}" name="time-end" placeholder="${this._timeline[1]}">
         </label>
 
         <label class="point__price">
