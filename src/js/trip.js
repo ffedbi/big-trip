@@ -28,6 +28,10 @@ export default class Trip extends Component {
     this._onChangePrice = this._onChangePrice.bind(this);
   }
 
+  set onDelete(fn) {
+    this._onDelete = fn;
+  }
+
   _onChangePrice(e) {
     this._price = e.target.value;
   }

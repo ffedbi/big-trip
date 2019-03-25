@@ -13,6 +13,8 @@
     "@babel/core": "7.3.4",
     "@babel/preset-env": "7.3.4",
     "babel-loader": "8.0.5",
+    "chart.js": "2.8.0",
+    "chartjs-plugin-datalabels": "0.6.0",
     "eslint": "5.13.0",
     "eslint-config-htmlacademy": "0.5.2",
     "flatpickr": "4.5.7",

@@ -1,5 +1,6 @@
 import {getRandomArrayItem, getRandomNumber} from "./utils";
 import {DATA_POINTS} from "./data";
+
 const TIME_SHIFT = 2 * 60 * 60 * 1000;
 
 const getRandomNumberOffers = (offers) => {
@@ -43,7 +44,7 @@ const getArrRandomPhoto = () => {
   return result;
 };
 
-export const makeRandomPointData = (num) => ({
+const makeRandomPointData = (num) => ({
   id: num,
   type: getRandomTypePoint(),
   city: getRandomArrayItem(DATA_POINTS.CITIES),
@@ -54,3 +55,12 @@ export const makeRandomPointData = (num) => ({
   duration: `2h 02m`,
   price: getRandomNumber(10, 45),
 });
+
+export const makeArrData = (num) => {
+  let result = [];
+  for (let i = 0; i < num; i++) {
+    result.push(makeRandomPointData(i));
+  }
+
+  return result;
+};
