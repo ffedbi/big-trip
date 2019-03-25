@@ -11,6 +11,7 @@ export const initStat = () => {
   transportCtx.height = BAR_HEIGTH * 4;
   timeCtx.height = BAR_HEIGTH * 4;
 
+  // eslint-disable-next-line no-unused-vars
   const moneyChart = new Chart(moneyCtx, {
     plugins: [ChartDataLabels],
     type: `horizontalBar`,
@@ -76,6 +77,7 @@ export const initStat = () => {
     },
   });
 
+  // eslint-disable-next-line no-unused-vars
   const transportChart = new Chart(transportCtx, {
     plugins: [ChartDataLabels],
     type: `horizontalBar`,
@@ -141,6 +143,7 @@ export const initStat = () => {
     },
   });
 
+  // eslint-disable-next-line no-unused-vars
   const timeChart = new Chart(timeCtx, {
     plugins: [ChartDataLabels],
     type: `horizontalBar`,
