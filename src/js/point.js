@@ -1,8 +1,10 @@
-import {Component} from "./component";
+import Component from "./component";
+import moment from "moment";
 
-export class Point extends Component {
+export default class Point extends Component {
   constructor(data) {
     super();
+    this._id = data.id;
     this._type = data.type;
     this._city = data.city;
     this._timeline = data.timeline;
@@ -42,11 +44,11 @@ export class Point extends Component {
   }
 
   get template() {
-    return `<article class="trip-point">
+    return `<article class="trip-point" id="${this._id}">
           <i class="trip-icon">${this._type.icon}</i>
           <h3 class="trip-point__title">${this._type.typeName} to ${this._city}</h3>
           <p class="trip-point__schedule">
-            <span class="trip-point__timetable">${this._timeline[0]}&nbsp;&mdash; ${this._timeline[1]}</span>
+            <span class="trip-point__timetable">${moment(this._timeline[0]).format(`h:mm A`)}&nbsp;&mdash; ${moment(this._timeline[1]).format(`h:mm A`)}</span>
             <span class="trip-point__duration">${this._duration}</span>
           </p>
           <p class="trip-point__price">&euro;&nbsp;${this._price}</p>
@@ -58,6 +60,14 @@ export class Point extends Component {
 
   set onClick(fn) {
     this._onElement = fn;
+  }
+
+  update(data) {
+    this._type = data.type;
+    this._city = data.city;
+    this._timeline = data.timeline;
+    this._price = data.price;
+    this._offers = data.offers;
   }
 }
 

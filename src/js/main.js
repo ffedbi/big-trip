@@ -2,8 +2,8 @@ import {getRandomNumber, clearSection} from './utils';
 import {makeHtmlFilter} from './make-html-filter';
 import {makeRandomPointData} from "./make-random-point-data";
 import {DATA_FILTERS} from './data';
-import {Point} from "./point";
-import {Trip} from "./trip";
+import Point from "./point";
+import Trip from "./trip";
 
 const STATE = {
   startNumberPoints: 7,
@@ -20,7 +20,7 @@ const renderFilters = (data, section) => {
 
 const renderNumPoints = (num, section) => {
   for (let i = 0; i < num; i++) {
-    let data = makeRandomPointData();
+    let data = makeRandomPointData(i);
     let point = new Point(data);
     let trip = new Trip(data);
 
@@ -30,7 +30,14 @@ const renderNumPoints = (num, section) => {
       point.destroy();
     };
 
-    trip.onSubmit = () => {
+    trip.onSubmit = (newData) => {
+      data.type = newData.type;
+      data.city = newData.city;
+      data.offers = newData.offers;
+      data.price = newData.price;
+      data.timeline = newData.timeline;
+
+      point.update(data);
       point.render();
       section.replaceChild(point.element, trip.element);
       trip.destroy();

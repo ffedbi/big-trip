@@ -1,6 +1,6 @@
 import {createDOMElementFromHtml} from "./utils";
 
-export class Component {
+export default class Component {
   constructor() {
     if (new.target === Component) {
       throw new Error(`Can't instantiate Component, only concrete one.`);
@@ -33,4 +33,6 @@ export class Component {
     this._unbind();
     this._element = null;
   }
+
+  update() {}
 }
