@@ -1,6 +1,5 @@
-import {getRandomArrayItem, getRandomNumber} from "./utils";
-import {DATA_POINTS} from "./data";
-
+import {getRandomArrayItem, getRandomNumber} from './utils';
+import {DATA_POINTS} from './data';
 const TIME_SHIFT = 2 * 60 * 60 * 1000;
 
 const getRandomNumberOffers = (offers) => {
@@ -30,9 +29,9 @@ const getRandomTypePoint = () => {
 };
 
 const getTimePoints = () => {
-  const timePoint = Date.now();
-  const timeEnd = timePoint + TIME_SHIFT;
-  return [timePoint, timeEnd];
+  const timeStart = Date.now();
+  const timeEnd = timeStart + TIME_SHIFT;
+  return [timeStart, timeEnd];
 };
 
 const getArrRandomPhoto = () => {
@@ -44,19 +43,18 @@ const getArrRandomPhoto = () => {
   return result;
 };
 
-const makeRandomPointData = (num) => ({
-  id: num,
+const makeRandomPointData = (idPoint) => ({
+  id: idPoint,
   type: getRandomTypePoint(),
   city: getRandomArrayItem(DATA_POINTS.CITIES),
   description: getRandomDescription(DATA_POINTS.DESCRIPTION_TEXT),
   picture: getArrRandomPhoto(),
   offers: new Set([...getRandomNumberOffers(DATA_POINTS.OFFERS)]),
   timeline: getTimePoints(),
-  duration: `2h 02m`,
   price: getRandomNumber(10, 45),
 });
 
-export const makeArrData = (num) => {
+export const makeRandomPointDataArray = (num) => {
   let result = [];
   for (let i = 0; i < num; i++) {
     result.push(makeRandomPointData(i));
@@ -64,3 +62,4 @@ export const makeArrData = (num) => {
 
   return result;
 };
+

@@ -1,5 +1,5 @@
 import {clearSection} from './utils';
-import {makeArrData} from "./make-random-point-data";
+import {makeRandomPointDataArray} from "./make-random-point-data-array";
 import {DATA_FILTERS} from './data';
 import Point from "./point";
 import Trip from "./trip";
@@ -12,9 +12,12 @@ const STATE = {
   startDataIndex: 0,
 };
 
-const pointData = makeArrData(STATE.startNumberPoints);
+const pointData = makeRandomPointDataArray(STATE.startNumberPoints);
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
 const POINT_SECTION = document.querySelector(`.trip-day__items`);
+const ACTIVE_BUTTON_CLASS = `view-switch__item--active`;
+const MAIN = document.querySelector(`.main`);
+const STATISTIC = document.querySelector(`.statistic`);
 
 const renderFilters = (data, section) => {
   for (let item of data) {
@@ -28,18 +31,6 @@ const renderFilters = (data, section) => {
 
     filter.render();
     section.appendChild(filter.element);
-  }
-};
-
-// eslint-disable-next-line consistent-return
-const filterPoint = (points, filterName) => {
-  switch (filterName) {
-    case `everything`:
-      return points;
-    case `Future`:
-      return points.filter((item) => new Date() < Date.new(item.timeline));
-    case `Past`:
-      return points.filter((item) => new Date() > Date.new(item.timeline));
   }
 };
 
@@ -83,10 +74,38 @@ const renderNumPoints = (data, section) => {
   }
 };
 
+// eslint-disable-next-line consistent-return
+const filterPoint = (points, filterName) => {
+  switch (filterName) {
+    case `everything`:
+      return points;
+    case `future`:
+      return points.filter((item) => new Date() < new Date(item.timeline[0]));
+    case `past`:
+      return points.filter((item) => new Date() > new Date(item.timeline[0]));
+  }
+};
+
 clearSection(FILTERS_SECTION);
 clearSection(POINT_SECTION);
 renderFilters(DATA_FILTERS, FILTERS_SECTION);
 renderNumPoints(pointData, POINT_SECTION);
 
-initStat();
+document.querySelector(`.view-switch`).addEventListener(`click`, (e) => {
+  e.preventDefault();
+  let viewType = e.target.getAttribute(`href`);
+
+  if (viewType === `#stats`) {
+    e.target.classList.add(ACTIVE_BUTTON_CLASS);
+    MAIN.classList.add(`visually-hidden`);
+    STATISTIC.classList.remove(`visually-hidden`);
+    initStat(pointData);
+  }
+
+  if (viewType === `#table`) {
+    e.target.classList.add(ACTIVE_BUTTON_CLASS);
+    MAIN.classList.remove(`visually-hidden`);
+    STATISTIC.classList.add(`visually-hidden`);
+  }
+});
 

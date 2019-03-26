@@ -8,7 +8,7 @@ export default class Point extends Component {
     this._type = data.type;
     this._city = data.city;
     this._timeline = data.timeline;
-    this._duration = data.duration;
+    this._duration = Point._getDurationEvent(this._timeline);
     this._price = data.price;
     this._offers = data.offers;
 
@@ -41,6 +41,13 @@ export default class Point extends Component {
     if (this._element) {
       this._element.removeEventListener(`click`, this._onClickPointElement);
     }
+  }
+
+  static _getDurationEvent(arr) {
+    const timeStart = moment(arr[0]);
+    const timeEnd = moment(arr[1]);
+    const diff = timeEnd.diff(timeStart);
+    return moment.utc(diff).format(`h:mm`);
   }
 
   get template() {

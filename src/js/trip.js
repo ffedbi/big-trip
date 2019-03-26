@@ -206,8 +206,8 @@ export default class Trip extends Component {
         </label>
 
         <div class="travel-way">
-          <label class="travel-way__label" for="travel-way__toggle">${this._type.icon}</label>
-          <input type="checkbox" class="travel-way__toggle visually-hidden" id="travel-way__toggle">
+          <label class="travel-way__label" for="travel-way__toggle-${this._id}">${this._type.icon}</label>
+          <input type="checkbox" class="travel-way__toggle visually-hidden" id="travel-way__toggle-${this._id}">
           <div class="travel-way__select">
             <div class="travel-way__select-group">
               <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-taxi-${this._id}" name="travel-way" value="taxi" ${this._type.typeName === `taxi` ? `checked` : ``}>

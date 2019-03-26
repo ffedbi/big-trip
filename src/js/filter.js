@@ -12,7 +12,7 @@ export default class Filter extends Component {
   }
 
   get name() {
-    return this._description.toUpperCase();
+    return this._description.toLowerCase();
   }
 
   set onFilter(fn) {
@@ -27,13 +27,13 @@ export default class Filter extends Component {
 
   _bind() {
     if (this._element) {
-      this._element.querySelector(`input`).addEventListener(`click`, this._onClickFilter);
+      this._element.querySelector(`label`).addEventListener(`click`, this._onClickFilter);
     }
   }
 
   _unbind() {
     if (this._element) {
-      this._element.querySelector(`input`).removeEventListener(`click`, this._onClickFilter);
+      this._element.querySelector(`label`).removeEventListener(`click`, this._onClickFilter);
     }
   }
 
@@ -46,7 +46,7 @@ export default class Filter extends Component {
 
   get template() {
     const descriptionLowered = this._description.toLowerCase();
-    return `<div><input type="radio" id="filter-${descriptionLowered}" name="filter" value="${descriptionLowered}" ${this._isChecked ? ` checked` : ``}>
-      <label class="trip-filter__item" for="filter-${descriptionLowered}">${this._description}</label></div>`;
+    return `<span><input type="radio" id="filter-${descriptionLowered}" name="filter" value="${descriptionLowered}" ${this._isChecked ? ` checked` : ``}>
+      <label class="trip-filter__item" for="filter-${descriptionLowered}">${this._description}</label></span>`;
   }
 }
