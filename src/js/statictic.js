@@ -1,35 +1,34 @@
 import Chart from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-const BAR_HEIGTH = 55;
+import moment from "moment";
+import {DATA_POINTS} from "./data";
 
-const CHART_MOK_DATA = {
-  time: {
-    labels: [`🛳️ HOTEL`, `🚕 TO AIRPORT`, `✈️ TO GENEVA`, `🛳️ TO CHAMONIX`],
-    values: [72, 1, 3, 2],
-    title: `TIME SPENT`,
-    formatter: (val) => `${val}H`,
-  },
-  money: {
-    labels: [`✈️ FLY`, `🏨 STAY`, `🚗 DRIVE`, `🏛️ LOOK`, `🏨 EAT`, `🚕 RIDE`],
-    values: [400, 300, 200, 160, 150, 100],
-    title: `MONEY`,
-    formatter: (val) => `€ ${val}`,
-  },
-  transport: {
-    labels: [`🚗 DRIVE`, `🚕 RIDE`, `✈️ FLY`, `🛳️ SAIL`],
-    values: [4, 3, 2, 1],
-    title: `TRANSPORT`,
-    formatter: (val) => `${val}x`,
-  },
+const moneyCanvas = document.querySelector(`.statistic__money`);
+const transportCanvas = document.querySelector(`.statistic__transport`);
+const timeCanvas = document.querySelector(`.statistic__time-spend`);
+const BAR_HEIGHT = 55;
+
+const getFullLabels = (labels) => {
+  return labels.map((item) => {
+    item = `${(DATA_POINTS.POINTS_TYPE[item])} ${item}`;
+    return item;
+  });
 };
 
 const getTypeEvent = (arr) => {
   let result = {};
   arr.forEach((item) => {
-    result.hasOwnProperty(item.type.typeName) ? result[item.type.typeName]++ : result[item.type.typeName] = 1;
+    if (result.hasOwnProperty(item.type.typeName)) {
+      result[item.type.typeName]++;
+    } else {
+      result[item.type.typeName] = 1;
+    }
   });
-  const labels = Object.keys(result);
+
+  let labels = Object.keys(result);
   const values = Object.values(result);
+
+  labels = getFullLabels(labels);
 
   return {
     labels,
@@ -40,115 +39,75 @@ const getTypeEvent = (arr) => {
 };
 
 const getPriceEvent = (arr) => {
-  let eventType = getTypeEvent(arr).labels;
-  let price = [];
-  arr.forEach((item) => price.push(item.price));
+  let result = {};
+  let testPrice = {};
+  arr.forEach((item) => {
+    if (result.hasOwnProperty(item.type.typeName)) {
+      result[item.type.typeName]++;
+    } else {
+      result[item.type.typeName] = 1;
+    }
+  });
+
+  let labels = Object.keys(result);
+
+  for (let i = 0; i <= arr.length; i++) {
+    testPrice[labels[i]] = 0;
+  }
+
+  for (let i = 0; i < arr.length; i++) {
+    if (testPrice.hasOwnProperty(arr[i].type.typeName)) {
+      testPrice[arr[i].type.typeName] += +arr[i].price;
+    }
+  }
+
+  const price = Object.values(testPrice);
+  labels = getFullLabels(labels);
 
   return {
-    labels: eventType,
+    labels,
     values: price,
     title: `MONEY`,
     formatter: (val) => `€ ${val}`,
   };
 };
 
-class Stat {
-  constructor(canvas, data) {
-    this._element = null;
+const getConvertHoursDuration = (arr) => {
+  const timeStart = moment(arr[0]);
+  const timeEnd = moment(arr[1]);
+  return moment.utc(timeEnd.diff(timeStart));
+};
 
-    this._canvas = document.querySelector(canvas);
-    this._canvas.height = BAR_HEIGTH * data.values.length;
-    this._labels = data.labels;
-    this._values = data.values;
-    this._title = data.title;
-    this._formatter = data.formatter;
-  }
+const getTotalDurationEvents = (arr) => {
+  let result = {};
+  arr.forEach((item) => {
+    if (result.hasOwnProperty(item.type.typeName)) {
+      result[item.type.typeName] += getConvertHoursDuration(item.timeline);
+    } else {
+      result[item.type.typeName] = getConvertHoursDuration(item.timeline);
+    }
+  });
 
-  render() {
-    this._element = new Chart(this._canvas, this.configChart);
-    return this._element;
-  }
+  let labels = Object.keys(result);
+  let values = Object.values(result);
 
-  destroy() {
-    this._element.destroy();
-  }
+  labels = getFullLabels(labels);
+  values = values.map((item) => moment(item).hour());
 
-  update() {}
-
-  get configChart() {
-    return {
-      plugins: [ChartDataLabels],
-      type: `horizontalBar`,
-      data: {
-        labels: this._labels,
-        datasets: [{
-          data: this._values,
-          backgroundColor: `#ffffff`,
-          hoverBackgroundColor: `#ffffff`,
-          anchor: `start`,
-        }],
-      },
-      options: {
-        plugins: {
-          datalabels: {
-            font: {
-              size: 13,
-            },
-            color: `#000000`,
-            anchor: `end`,
-            align: `start`,
-            formatter: this._formatter,
-          },
-        },
-        title: {
-          display: true,
-          text: this._title,
-          fontColor: `#000000`,
-          fontSize: 23,
-          position: `left`,
-        },
-        scales: {
-          yAxes: [{
-            ticks: {
-              fontColor: `#000000`,
-              padding: 5,
-              fontSize: 13,
-            },
-            gridLines: {
-              display: false,
-              drawBorder: false,
-            },
-            barThickness: 44,
-          }],
-          xAxes: [{
-            ticks: {
-              display: false,
-              beginAtZero: true,
-            },
-            gridLines: {
-              display: false,
-              drawBorder: false,
-            },
-            minBarLength: 50,
-          }],
-        },
-        legend: {
-          display: false,
-        },
-        tooltips: {
-          enabled: false,
-        },
-      },
-    };
-  }
-}
+  return {
+    labels,
+    values,
+    title: `TIME SPENT`,
+    formatter: (val) => `${val}H`,
+  };
+};
 
 const createHorizontalBarChart = (canvasElement, chartData) => {
   const chart = new Chart(canvasElement, {
     plugins: [ChartDataLabels],
     type: `horizontalBar`,
     data: {
-      labels: chartData.labels,
+      labels: chartData.labels.map((item) => item.toUpperCase()),
       datasets: [{
         data: chartData.values,
         backgroundColor: `#ffffff`,
@@ -208,16 +167,26 @@ const createHorizontalBarChart = (canvasElement, chartData) => {
       },
     },
   });
+  chart.height = BAR_HEIGHT * chartData.values.length;
   return chart;
 };
 
+const updateChart = (chart, data) => {
+  chart.data.labels = data.labels.map((item) => item.toUpperCase());
+  chart.data.datasets[0].data = data.values;
+  chart.update();
+};
+
 export const initStat = (data) => {
-  const transportData = getTypeEvent(data);
   const moneyData = getPriceEvent(data);
-  // createHorizontalBarChart(MONEY_CANVAS, moneyData);
-  // createHorizontalBarChart(TRANSPORT_CANVAS, transportData);
-  // createHorizontalBarChart(TIME_CANVAS, CHART_MOK_DATA.time);
-  new Stat(`.statistic__money`, moneyData).render();
-  new Stat(`.statistic__transport`, transportData).render();
-  new Stat(`.statistic__time-spend`, CHART_MOK_DATA.time).render();
+  const transportData = getTypeEvent(data);
+  const timeData = getTotalDurationEvents(data);
+
+  const moneyChart = createHorizontalBarChart(moneyCanvas, moneyData);
+  const transportChart = createHorizontalBarChart(transportCanvas, transportData);
+  const timeChart = createHorizontalBarChart(timeCanvas, timeData);
+
+  updateChart(moneyChart, moneyData);
+  updateChart(transportChart, transportData);
+  updateChart(timeChart, timeData);
 };

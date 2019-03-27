@@ -75,6 +75,7 @@ export default class Point extends Component {
     this._timeline = data.timeline;
     this._price = data.price;
     this._offers = data.offers;
+    this._duration = Point._getDurationEvent(data.timeline);
   }
 }
 

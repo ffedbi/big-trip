@@ -1,23 +1,20 @@
 import {clearSection} from './utils';
 import {makeRandomPointDataArray} from "./make-random-point-data-array";
 import {DATA_FILTERS} from './data';
+import {initStat} from "./statictic";
 import Point from "./point";
 import Trip from "./trip";
-import {initStat} from "./statictic";
 import Filter from "./filter";
 
-const STATE = {
-  startNumberPoints: 7,
-  minNumberPoints: 1,
-  startDataIndex: 0,
-};
-
-const pointData = makeRandomPointDataArray(STATE.startNumberPoints);
+const START_NUM_POINTS = 7;
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
 const POINT_SECTION = document.querySelector(`.trip-day__items`);
 const ACTIVE_BUTTON_CLASS = `view-switch__item--active`;
 const MAIN = document.querySelector(`.main`);
 const STATISTIC = document.querySelector(`.statistic`);
+const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`);
+const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
+let pointData = makeRandomPointDataArray(START_NUM_POINTS);
 
 const renderFilters = (data, section) => {
   for (let item of data) {
@@ -74,15 +71,45 @@ const renderNumPoints = (data, section) => {
   }
 };
 
-// eslint-disable-next-line consistent-return
 const filterPoint = (points, filterName) => {
-  switch (filterName) {
+  let result;
+  const name = filterName.toLowerCase();
+  switch (name) {
     case `everything`:
-      return points;
+      result = points;
+      break;
     case `future`:
-      return points.filter((item) => new Date() < new Date(item.timeline[0]));
+      result = points.filter((item) => new Date() < new Date(item.timeline[0]));
+      break;
     case `past`:
-      return points.filter((item) => new Date() > new Date(item.timeline[0]));
+      result = points.filter((item) => new Date() > new Date(item.timeline[0]));
+      break;
+    default:
+      result = points;
+  }
+  return result;
+};
+
+const onBtnStatisticClick = (e) => {
+  e.preventDefault();
+  if (!e.target.classList.contains(ACTIVE_BUTTON_CLASS)) {
+    BUTTON_TABLE.classList.remove(ACTIVE_BUTTON_CLASS);
+    e.target.classList.add(ACTIVE_BUTTON_CLASS);
+    MAIN.classList.add(`visually-hidden`);
+    STATISTIC.classList.remove(`visually-hidden`);
+    initStat(pointData);
+  }
+};
+
+const onBtnTableClick = (e) => {
+  e.preventDefault();
+  if (!e.target.classList.contains(ACTIVE_BUTTON_CLASS)) {
+    BUTTON_STATISTIC.classList.remove(ACTIVE_BUTTON_CLASS);
+    e.target.classList.add(ACTIVE_BUTTON_CLASS);
+    MAIN.classList.add(`visually-hidden`);
+    STATISTIC.classList.remove(`visually-hidden`);
+    MAIN.classList.remove(`visually-hidden`);
+    STATISTIC.classList.add(`visually-hidden`);
   }
 };
 
@@ -90,22 +117,5 @@ clearSection(FILTERS_SECTION);
 clearSection(POINT_SECTION);
 renderFilters(DATA_FILTERS, FILTERS_SECTION);
 renderNumPoints(pointData, POINT_SECTION);
-
-document.querySelector(`.view-switch`).addEventListener(`click`, (e) => {
-  e.preventDefault();
-  let viewType = e.target.getAttribute(`href`);
-
-  if (viewType === `#stats`) {
-    e.target.classList.add(ACTIVE_BUTTON_CLASS);
-    MAIN.classList.add(`visually-hidden`);
-    STATISTIC.classList.remove(`visually-hidden`);
-    initStat(pointData);
-  }
-
-  if (viewType === `#table`) {
-    e.target.classList.add(ACTIVE_BUTTON_CLASS);
-    MAIN.classList.remove(`visually-hidden`);
-    STATISTIC.classList.add(`visually-hidden`);
-  }
-});
-
+BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
+BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);
