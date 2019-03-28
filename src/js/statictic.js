@@ -3,100 +3,73 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import moment from "moment";
 import {DATA_POINTS} from "./data";
 
-const moneyCanvas = document.querySelector(`.statistic__money`);
-const transportCanvas = document.querySelector(`.statistic__transport`);
-const timeCanvas = document.querySelector(`.statistic__time-spend`);
+const MONEY_CANVAS = document.querySelector(`.statistic__money`);
+const TRANSPORT_CANVAS = document.querySelector(`.statistic__transport`);
+const TIME_CANVAS = document.querySelector(`.statistic__time-spend`);
 const BAR_HEIGHT = 55;
 
-const getFullLabels = (labels) => {
-  return labels.map((item) => {
-    item = `${(DATA_POINTS.POINTS_TYPE[item])} ${item}`;
-    return item;
-  });
+let moneyChart = null;
+let transportChart = null;
+let timeChart = null;
+
+const getDurationEvents = (arr) => {
+  const timeStart = arr[0];
+  const timeEnd = arr[1];
+  return timeEnd - timeStart;
 };
 
-const getTypeEvent = (arr) => {
+const getTypeEvent = (data) => {
   let result = {};
-  arr.forEach((item) => {
-    if (result.hasOwnProperty(item.type.typeName)) {
-      result[item.type.typeName]++;
+  data.forEach((item) => {
+    let typeName = `${(DATA_POINTS.POINTS_TYPE[item.type.typeName])} ${item.type.typeName}`;
+    if (result[typeName]) {
+      result[typeName]++;
     } else {
-      result[item.type.typeName] = 1;
+      result[typeName] = 1;
     }
   });
 
-  let labels = Object.keys(result);
-  const values = Object.values(result);
-
-  labels = getFullLabels(labels);
-
   return {
-    labels,
-    values,
+    labels: Object.keys(result),
+    values: Object.values(result),
     title: `TRANSPORT`,
     formatter: (val) => `${val}x`,
   };
 };
 
-const getPriceEvent = (arr) => {
+const getPriceEvents = (data) => {
   let result = {};
-  let testPrice = {};
-  arr.forEach((item) => {
-    if (result.hasOwnProperty(item.type.typeName)) {
-      result[item.type.typeName]++;
-    } else {
-      result[item.type.typeName] = 1;
+
+  data.forEach((item) => {
+    let typeName = `${(DATA_POINTS.POINTS_TYPE[item.type.typeName])} ${item.type.typeName}`;
+    if (!result[typeName]) {
+      result[typeName] = 0;
     }
+    result[typeName] += +item.price;
   });
 
-  let labels = Object.keys(result);
-
-  for (let i = 0; i <= arr.length; i++) {
-    testPrice[labels[i]] = 0;
-  }
-
-  for (let i = 0; i < arr.length; i++) {
-    if (testPrice.hasOwnProperty(arr[i].type.typeName)) {
-      testPrice[arr[i].type.typeName] += +arr[i].price;
-    }
-  }
-
-  const price = Object.values(testPrice);
-  labels = getFullLabels(labels);
-
   return {
-    labels,
-    values: price,
+    labels: Object.keys(result),
+    values: Object.values(result),
     title: `MONEY`,
     formatter: (val) => `€ ${val}`,
   };
 };
 
-const getConvertHoursDuration = (arr) => {
-  const timeStart = moment(arr[0]);
-  const timeEnd = moment(arr[1]);
-  return moment.utc(timeEnd.diff(timeStart));
-};
-
-const getTotalDurationEvents = (arr) => {
+const getTotalDurationEvents = (data) => {
   let result = {};
-  arr.forEach((item) => {
-    if (result.hasOwnProperty(item.type.typeName)) {
-      result[item.type.typeName] += getConvertHoursDuration(item.timeline);
+  data.forEach((item) => {
+    let typeName = `${(DATA_POINTS.POINTS_TYPE[item.type.typeName])} ${item.type.typeName}`;
+    if (!result[typeName]) {
+      result[typeName] = getDurationEvents(item.timeline);
     } else {
-      result[item.type.typeName] = getConvertHoursDuration(item.timeline);
+      result[typeName] += getDurationEvents(item.timeline);
     }
   });
 
-  let labels = Object.keys(result);
-  let values = Object.values(result);
-
-  labels = getFullLabels(labels);
-  values = values.map((item) => moment(item).hour());
-
   return {
-    labels,
-    values,
+    labels: Object.keys(result),
+    values: Object.values(result).map((item) => moment.utc(item).format(`h`)),
     title: `TIME SPENT`,
     formatter: (val) => `${val}H`,
   };
@@ -107,7 +80,7 @@ const createHorizontalBarChart = (canvasElement, chartData) => {
     plugins: [ChartDataLabels],
     type: `horizontalBar`,
     data: {
-      labels: chartData.labels.map((item) => item.toUpperCase()),
+      labels: chartData.labels,
       datasets: [{
         data: chartData.values,
         backgroundColor: `#ffffff`,
@@ -174,17 +147,20 @@ const createHorizontalBarChart = (canvasElement, chartData) => {
 const updateChart = (chart, data) => {
   chart.data.labels = data.labels.map((item) => item.toUpperCase());
   chart.data.datasets[0].data = data.values;
+  chart.height = BAR_HEIGHT * data.values.length;
   chart.update();
 };
 
 export const initStat = (data) => {
-  const moneyData = getPriceEvent(data);
+  const moneyData = getPriceEvents(data);
   const transportData = getTypeEvent(data);
   const timeData = getTotalDurationEvents(data);
 
-  const moneyChart = createHorizontalBarChart(moneyCanvas, moneyData);
-  const transportChart = createHorizontalBarChart(transportCanvas, transportData);
-  const timeChart = createHorizontalBarChart(timeCanvas, timeData);
+  if (!moneyChart) {
+    moneyChart = createHorizontalBarChart(MONEY_CANVAS, moneyData);
+    transportChart = createHorizontalBarChart(TRANSPORT_CANVAS, transportData);
+    timeChart = createHorizontalBarChart(TIME_CANVAS, timeData);
+  }
 
   updateChart(moneyChart, moneyData);
   updateChart(transportChart, transportData);
