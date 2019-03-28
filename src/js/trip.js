@@ -245,8 +245,8 @@ export default class Trip extends Component {
 
         <label class="point__time">
           choose time
-          <input class="point__input" type="text" value="${this._timeline[0]}" name="time-start" placeholder="${this._timeline[0]}">
-          <input class="point__input" type="text" value="${this._timeline[1]}" name="time-end" placeholder="${this._timeline[1]}">
+          <input class="point__input" type="text" value="${this._timeline[0]}" name="date-start" placeholder="${this._timeline[0]}">
+          <input class="point__input" type="text" value="${this._timeline[1]}" name="date-end" placeholder="${this._timeline[1]}">
         </label>
 
         <label class="point__price">
