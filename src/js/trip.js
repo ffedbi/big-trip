@@ -3,7 +3,6 @@ import flatpickr from "flatpickr";
 import {DATA_POINTS} from "./data";
 import moment from "moment";
 
-
 export default class Trip extends Component {
   constructor(data) {
     super();
@@ -11,9 +10,9 @@ export default class Trip extends Component {
     this._id = data.id;
     this._type = data.type;
     this._city = data.city;
-    this._price = data.price;
     this._timeline = data.timeline;
     this._offers = data.offers;
+    this._price = data.price;
     this._description = data.description;
     this._picture = data.picture;
 
@@ -26,6 +25,10 @@ export default class Trip extends Component {
     this._onChangeTimeStart = this._onChangeTimeStart.bind(this);
     this._onChangeTimeEnd = this._onChangeTimeEnd.bind(this);
     this._onChangePrice = this._onChangePrice.bind(this);
+  }
+
+  set onDelete(fn) {
+    this._onDelete = fn;
   }
 
   _onChangePrice(e) {
@@ -202,28 +205,28 @@ export default class Trip extends Component {
         </label>
 
         <div class="travel-way">
-          <label class="travel-way__label" for="travel-way__toggle">${this._type.icon}</label>
-          <input type="checkbox" class="travel-way__toggle visually-hidden" id="travel-way__toggle">
+          <label class="travel-way__label" for="travel-way__toggle-${this._id}">${this._type.icon}</label>
+          <input type="checkbox" class="travel-way__toggle visually-hidden" id="travel-way__toggle-${this._id}">
           <div class="travel-way__select">
             <div class="travel-way__select-group">
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-taxi-${this._id}" name="travel-way" value="taxi" ${this._type.typeName === `taxi` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-taxi-${this._id}" name="travel-way" value="Taxi" ${this._type.typeName === `taxi` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-taxi-${this._id}">🚕 taxi</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-bus-${this._id}" name="travel-way" value="bus" ${this._type.typeName === `bus` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-bus-${this._id}" name="travel-way" value="Bus" ${this._type.typeName === `bus` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-bus-${this._id}">🚌 bus</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-train-${this._id}" name="travel-way" value="train" ${this._type.typeName === `train` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-train-${this._id}" name="travel-way" value="Train" ${this._type.typeName === `train` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-train-${this._id}">🚂 train</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-flight-${this._id}" name="travel-way" value="flight" ${this._type.typeName === `flight` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-flight-${this._id}" name="travel-way" value="Flight" ${this._type.typeName === `flight` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-flight-${this._id}">✈️ flight</label>
             </div>
 
             <div class="travel-way__select-group">
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-check-in-${this._id}" name="travel-way" value="check-in" ${this._type.typeName === `check-in` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-check-in-${this._id}" name="travel-way" value="Check-in" ${this._type.typeName === `check-in` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-check-in-${this._id}">🏨 check-in</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-sightseeing-${this._id}" name="travel-way" value="sight-seeing" ${this._type.typeName === `sight-seeing` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-sightseeing-${this._id}" name="travel-way" value="Sight-seeing" ${this._type.typeName === `sight-seeing` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-sightseeing-${this._id}">🏛 sightseeing</label>
             </div>
           </div>

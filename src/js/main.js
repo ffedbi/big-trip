@@ -1,28 +1,45 @@
-import {getRandomNumber, clearSection} from './utils';
-import {makeHtmlFilter} from './make-html-filter';
-import {makeRandomPointData} from "./make-random-point-data";
+import {clearSection} from './utils';
+import {makeRandomPointDataArray} from "./make-random-point-data-array";
 import {DATA_FILTERS} from './data';
+import {initStat} from "./statictic";
 import Point from "./point";
 import Trip from "./trip";
+import Filter from "./filter";
 
-const STATE = {
-  startNumberPoints: 7,
-  minNumberPoints: 1,
-  startDataIndex: 0,
-};
-
+const START_NUM_POINTS = 7;
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
 const POINT_SECTION = document.querySelector(`.trip-day__items`);
+const ACTIVE_BUTTON_CLASS = `view-switch__item--active`;
+const MAIN = document.querySelector(`.main`);
+const STATISTIC = document.querySelector(`.statistic`);
+const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`);
+const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
+let pointData = makeRandomPointDataArray(START_NUM_POINTS);
 
 const renderFilters = (data, section) => {
-  data.forEach((item) => section.insertAdjacentHTML(`beforeend`, makeHtmlFilter(item)));
+  for (let item of data) {
+    const filter = new Filter(item);
+
+    filter.onFilter = () => {
+      clearSection(POINT_SECTION);
+      let newPointData = filterPoint(pointData, filter.name);
+      renderNumPoints(newPointData, POINT_SECTION);
+    };
+
+    filter.render();
+    section.appendChild(filter.element);
+  }
 };
 
-const renderNumPoints = (num, section) => {
-  for (let i = 0; i < num; i++) {
-    let data = makeRandomPointData(i);
-    let point = new Point(data);
-    let trip = new Trip(data);
+const deletePoint = (trip, id) => {
+  pointData.splice(id, 1);
+  return trip;
+};
+
+const renderNumPoints = (data, section) => {
+  for (let item of data) {
+    let point = new Point(item);
+    let trip = new Trip(item);
 
     point.onClick = () => {
       trip.render();
@@ -31,21 +48,21 @@ const renderNumPoints = (num, section) => {
     };
 
     trip.onSubmit = (newData) => {
-      data.type = newData.type;
-      data.city = newData.city;
-      data.offers = newData.offers;
-      data.price = newData.price;
-      data.timeline = newData.timeline;
+      item.type = newData.type;
+      item.city = newData.city;
+      item.offers = newData.offers;
+      item.price = newData.price;
+      item.timeline = newData.timeline;
 
-      point.update(data);
+      point.update(item);
       point.render();
       section.replaceChild(point.element, trip.element);
       trip.destroy();
     };
 
     trip.onDelete = () => {
-      point.render();
-      section.replaceChild(point.element, trip.element);
+      deletePoint(trip, item);
+      trip.element.remove();
       trip.destroy();
     };
 
@@ -54,16 +71,51 @@ const renderNumPoints = (num, section) => {
   }
 };
 
+const filterPoint = (points, filterName) => {
+  let result;
+  const name = filterName.toLowerCase();
+  switch (name) {
+    case `everything`:
+      result = points;
+      break;
+    case `future`:
+      result = points.filter((item) => new Date() < new Date(item.timeline[0]));
+      break;
+    case `past`:
+      result = points.filter((item) => new Date() > new Date(item.timeline[0]));
+      break;
+    default:
+      result = points;
+  }
+  return result;
+};
+
+const onBtnStatisticClick = (e) => {
+  e.preventDefault();
+  if (!e.target.classList.contains(ACTIVE_BUTTON_CLASS)) {
+    BUTTON_TABLE.classList.remove(ACTIVE_BUTTON_CLASS);
+    e.target.classList.add(ACTIVE_BUTTON_CLASS);
+    MAIN.classList.add(`visually-hidden`);
+    STATISTIC.classList.remove(`visually-hidden`);
+    initStat(pointData);
+  }
+};
+
+const onBtnTableClick = (e) => {
+  e.preventDefault();
+  if (!e.target.classList.contains(ACTIVE_BUTTON_CLASS)) {
+    BUTTON_STATISTIC.classList.remove(ACTIVE_BUTTON_CLASS);
+    e.target.classList.add(ACTIVE_BUTTON_CLASS);
+    MAIN.classList.add(`visually-hidden`);
+    STATISTIC.classList.remove(`visually-hidden`);
+    MAIN.classList.remove(`visually-hidden`);
+    STATISTIC.classList.add(`visually-hidden`);
+  }
+};
+
 clearSection(FILTERS_SECTION);
 clearSection(POINT_SECTION);
 renderFilters(DATA_FILTERS, FILTERS_SECTION);
-renderNumPoints(STATE.startNumberPoints, POINT_SECTION);
-
-FILTERS_SECTION.addEventListener(`change`, (e) => {
-  e.preventDefault();
-  if (e.target.tagName.toLowerCase() === `input`) {
-    clearSection(POINT_SECTION);
-    renderNumPoints(getRandomNumber(STATE.minNumberPoints, STATE.startNumberPoints), POINT_SECTION);
-  }
-});
-
+renderNumPoints(pointData, POINT_SECTION);
+BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
+BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);
