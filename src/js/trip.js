@@ -36,12 +36,12 @@ export default class Trip extends Component {
   }
 
   _onChangeTimeStart() {
-    const valueInput = this._element.querySelector(`input[name="time-start"]`).value;
+    const valueInput = this._element.querySelector(`input[name="data-start"]`).value;
     this._timeline[0] = new Date(moment(valueInput, `h:mm`)).getTime();
   }
 
   _onChangeTimeEnd() {
-    const valueInput = this._element.querySelector(`input[name="time-end"]`).value;
+    const valueInput = this._element.querySelector(`input[name="data-end"]`).value;
     this._timeline[1] = new Date(moment(valueInput, `h:mm`)).getTime();
   }
 
@@ -139,7 +139,7 @@ export default class Trip extends Component {
       this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
       this._element.querySelector(`input[name="price"]`).addEventListener(`change`, this._onChangePrice);
 
-      flatpickr(this._element.querySelector(`.point__time input[name="time-start"]`), {
+      flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`), {
         enableTime: true,
         altInput: true,
         noCalendar: true,
@@ -149,7 +149,7 @@ export default class Trip extends Component {
         onClose: this._onChangeTimeStart,
       });
 
-      flatpickr(this._element.querySelector(`.point__time input[name="time-end"]`), {
+      flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`), {
         enableTime: true,
         altInput: true,
         noCalendar: true,
@@ -166,8 +166,8 @@ export default class Trip extends Component {
       this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
       this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
       this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
-      flatpickr(this._element.querySelector(`.point__time input[name="time-start"]`)).destroy();
-      flatpickr(this._element.querySelector(`.point__time input[name="time-end"]`)).destroy();
+      flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`)).destroy();
+      flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`)).destroy();
     }
   }
 

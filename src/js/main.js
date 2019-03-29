@@ -16,6 +16,9 @@ const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`)
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
 let pointData = makeRandomPointDataArray(START_NUM_POINTS);
 
+const AUTHORIZATION = `Basic eo0w590ik29889a=${Math.random()}`;
+const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
+
 const renderFilters = (data, section) => {
   for (let item of data) {
     const filter = new Filter(item);
@@ -36,14 +39,15 @@ const deletePoint = (trip, id) => {
   return trip;
 };
 
-const renderNumPoints = (data, section) => {
+const renderNumPoints = (data) => {
+  clearSection(POINT_SECTION)
   for (let item of data) {
     let point = new Point(item);
     let trip = new Trip(item);
 
     point.onClick = () => {
       trip.render();
-      section.replaceChild(trip.element, point.element);
+      POINT_SECTION.replaceChild(trip.element, point.element);
       point.destroy();
     };
 
@@ -56,7 +60,7 @@ const renderNumPoints = (data, section) => {
 
       point.update(item);
       point.render();
-      section.replaceChild(point.element, trip.element);
+      POINT_SECTION.replaceChild(point.element, trip.element);
       trip.destroy();
     };
 
@@ -67,7 +71,7 @@ const renderNumPoints = (data, section) => {
     };
 
     point.render();
-    section.appendChild(point.element);
+    POINT_SECTION.appendChild(point.element);
   }
 };
 
@@ -114,7 +118,6 @@ const onBtnTableClick = (e) => {
 };
 
 clearSection(FILTERS_SECTION);
-clearSection(POINT_SECTION);
 renderFilters(DATA_FILTERS, FILTERS_SECTION);
 renderNumPoints(pointData, POINT_SECTION);
 BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
