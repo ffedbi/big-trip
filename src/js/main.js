@@ -18,12 +18,24 @@ const AUTHORIZATION = `Basic eo0w590ik29889a=${Math.random()}`;
 const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 let arrPoints = null;
+let dest = null;
+let offers = null;
 
 api.getPoints()
   .then((points) => {
     arrPoints = points;
     renderNumPoints(arrPoints);
   });
+
+api.getDestinations((response) => {
+  dest = response;
+  window.console.log(dest);
+});
+
+api.getOffers((response) => {
+  offers = response;
+  window.console.log(offers);
+});
 
 const renderFilters = (data, section) => {
   for (let item of data) {
@@ -64,6 +76,7 @@ const renderNumPoints = (data) => {
       item.offers = newData.offers;
       item.price = newData.price;
       item.timeline = newData.timeline;
+      item.favorite = newData.favorite;
 
       trip.lockToSaving();
       api.updatePoint({id: item.id, data: item.toRAW()})
@@ -72,7 +85,6 @@ const renderNumPoints = (data) => {
             point.update(response);
             point.render();
             POINT_SECTION.replaceChild(point.element, trip.element);
-            trip.destroy();
           }
         })
         .catch(() => {
@@ -80,16 +92,23 @@ const renderNumPoints = (data) => {
         })
         .then(() => {
           trip.unlockToSave();
+          trip.destroy();
         });
     };
 
     trip.onDelete = ({id}) => {
+      trip.lockToDeleting();
       api.deleteTask({id})
         .then(() => api.getPoints())
-        .then(renderNumPoints);
+        .then(renderNumPoints)
+        .catch(() => {
+          trip.shake();
+        })
+        .then(() => {
+          trip.unlockToDelete();
+        });
+
       deletePoint(arrPoints, item);
-      trip.element.remove();
-      trip.destroy();
     };
 
     point.render();

@@ -1,4 +1,6 @@
 import ModelPoint from "./model-point";
+import ModelOffers from "./model-offers";
+import ModelDestinations from "./model-destinations";
 
 const Method = {
   GET: `GET`,
@@ -29,6 +31,18 @@ export default class API {
     return this._load({url: `points`})
       .then(toJSON)
       .then(ModelPoint.parsePoints);
+  }
+
+  getDestinations() {
+    return this._load({url: `destinations`})
+      .then(toJSON)
+      .then(ModelDestinations.parsePoints);
+  }
+
+  getOffers() {
+    return this._load({url: `offers`})
+      .then(toJSON)
+      .then(ModelOffers.parsePoints);
   }
 
   createPoint({task}) {

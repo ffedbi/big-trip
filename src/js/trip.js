@@ -1,6 +1,6 @@
 import Component from "./component";
 import flatpickr from "flatpickr";
-import {DATA_POINTS, POINTS_TYPE} from "./data";
+import {POINTS_TYPE} from "./data";
 import moment from "moment";
 
 export default class Trip extends Component {
@@ -38,19 +38,19 @@ export default class Trip extends Component {
   }
 
   _onChangeTimeStart() {
-    const valueInput = this._element.querySelector(`input[name="data-start"]`).value;
+    const valueInput = this._element.querySelector(`input[name="date-start"]`).value;
     this._timeline[0] = new Date(moment(valueInput, `h:mm`)).getTime();
   }
 
   _onChangeTimeEnd() {
-    const valueInput = this._element.querySelector(`input[name="data-end"]`).value;
+    const valueInput = this._element.querySelector(`input[name="date-end"]`).value;
     this._timeline[1] = new Date(moment(valueInput, `h:mm`)).getTime();
   }
 
   _makeHtmlButtonOffers() {
     let str = ``;
     for (let item of this._offers) {
-      str += `<input class="point__offers-input visually-hidden" type="checkbox" id="${item.title}-${this._id}" name="offer" value="${item[0]}-${item[1]}" ${item.accepted ? `checked` : ``}>
+      str += `<input class="point__offers-input visually-hidden" type="checkbox" id="${item.title}-${this._id}" name="offer" value="${item.title}-${item.price}" ${item.accepted ? `checked` : ``}>
             <label for="${item.title}-${this._id}" class="point__offers-label">
               <span class="point__offer-service">${item.title}</span> + €<span class="point__offer-price">${item.price}</span>
             </label>`.trim();
@@ -74,7 +74,11 @@ export default class Trip extends Component {
     return {
       offer(value) {
         const result = value.split(`-`);
-        target.offers.add([result[0], result[1]]);
+        target.offers.push({
+          title: result[0],
+          price: result[1],
+          accepted: true
+        });
       },
       destination(value) {
         target.city = value;
@@ -94,6 +98,11 @@ export default class Trip extends Component {
       [`date-end`](value) {
         target.timeline[1] = new Date(moment(value, `h:mm`)).getTime();
       },
+      favorite(value) {
+        if (value === `on`) {
+          target.favorite = true;
+        }
+      },
       /* [`total-price`](value) {
       } */
     };
@@ -102,17 +111,19 @@ export default class Trip extends Component {
   _processForm(formData) {
     const entry = {
       type: this._type,
-      offers: new Set(),
+      offers: [],
       timeline: [],
       price: null,
       duration: new Date(),
       city: ``,
       totalPrice: 0,
+      favorite: false,
     };
 
     const pointMapper = Trip.createMapper(entry);
     for (const pair of formData.entries()) {
       const [property, value] = pair;
+      // console.log(pair)
       if (pointMapper[property]) {
         pointMapper[property](value);
       }
@@ -146,6 +157,7 @@ export default class Trip extends Component {
         altInput: true,
         noCalendar: true,
         defaultDate: [this._timeline[0]],
+        maxDate: this._timeline[1],
         altFormat: `h:i K`,
         dateFormat: `h:i K`,
         onClose: this._onChangeTimeStart,
@@ -156,6 +168,7 @@ export default class Trip extends Component {
         altInput: true,
         noCalendar: true,
         defaultDate: [this._timeline[1]],
+        maixDate: this._timeline[0],
         altFormat: `h:i K`,
         dateFormat: `h:i K`,
         onClose: this._onChangeTimeEnd,
@@ -210,6 +223,16 @@ export default class Trip extends Component {
   unlockToSave() {
     this._element.querySelector(`.point__button--save`).disabled = false;
     this._element.querySelector(`.point__button--save`).textContent = `Save`;
+  }
+
+  lockToDeleting() {
+    this._element.querySelector(`button[type="reset"]`).disabled = true;
+    this._element.querySelector(`button[type="reset"]`).textContent = `Deleting...`;
+  }
+
+  unlockToDelete() {
+    this._element.querySelector(`button[type="reset"]`).disabled = false;
+    this._element.querySelector(`button[type="reset"]`).textContent = `Delete`;
   }
 
   shake() {
@@ -290,8 +313,8 @@ export default class Trip extends Component {
         </div>
 
         <div class="paint__favorite-wrap">
-          <input type="checkbox" class="point__favorite-input visually-hidden" id="favorite" name="favorite" ${this._favorite ? `checked` : ``}>
-          <label class="point__favorite" for="favorite">favorite</label>
+          <input type="checkbox" class="point__favorite-input visually-hidden" id="favorite-${this._id}" name="favorite" ${this._favorite ? `checked` : ``}>
+          <label class="point__favorite" for="favorite-${this._id}">favorite</label>
         </div>
       </header>
 

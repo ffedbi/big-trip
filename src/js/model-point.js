@@ -2,13 +2,13 @@ import {POINTS_TYPE} from "./data";
 
 export default class ModelPoint {
   constructor(data) {
-    this.id = data[`id`];
+    this.id = data[`id`] || ``;
     this.type = {
       typeName: data[`type`],
       icon: POINTS_TYPE[data[`type`]],
     };
     this.price = data[`base_price`];
-    this.city = data[`destination`][`name`];
+    this.city = data[`destination`][`name`] || ``;
     this.timeline = [data[`date_from`], data[`date_to`]];
     this.offers = data[`offers`];
     this.description = data[`destination`][`description`];
