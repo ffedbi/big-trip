@@ -4,16 +4,16 @@ export default class ModelPoint {
   constructor(data) {
     this.id = data[`id`] || ``;
     this.type = {
-      typeName: data[`type`],
-      icon: POINTS_TYPE[data[`type`]],
+      typeName: data[`type`] || `taxi`,
+      icon: POINTS_TYPE[data[`type`]] || POINTS_TYPE[data[`taxi`]],
     };
     this.price = data[`base_price`];
     this.city = data[`destination`][`name`] || ``;
-    this.timeline = [data[`date_from`], data[`date_to`]];
-    this.offers = data[`offers`];
-    this.description = data[`destination`][`description`];
-    this.pictures = data[`destination`][`pictures`];
-    this.favorite = data[`is_favorite`];
+    this.timeline = [data[`date_from`], data[`date_to`]] || [];
+    this.offers = data[`offers`] || [];
+    this.description = data[`destination`][`description`] || ``;
+    this.pictures = data[`destination`][`pictures`] || [];
+    this.favorite = data[`is_favorite`] || false;
   }
 
   toRAW() {

@@ -9,6 +9,6 @@ export default class ModelOffers {
   }
 
   static parseOffers(data) {
-    return data.map(ModelOffers.parsePoint);
+    return data.map(ModelOffers.parseOffer);
   }
 }

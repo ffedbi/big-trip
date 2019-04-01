@@ -13,13 +13,14 @@ const MAIN = document.querySelector(`.main`);
 const STATISTIC = document.querySelector(`.statistic`);
 const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`);
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
-
+const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
 const AUTHORIZATION = `Basic eo0w590ik29889a=${Math.random()}`;
 const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 let arrPoints = null;
-let dest = null;
-let offers = null;
+// TODO: eslint error
+export let dest = null;
+export let offers = null;
 
 api.getPoints()
   .then((points) => {
@@ -27,15 +28,23 @@ api.getPoints()
     renderNumPoints(arrPoints);
   });
 
-api.getDestinations((response) => {
-  dest = response;
-  window.console.log(dest);
+api.getDestinations((destinations) => {
+  dest = destinations;
 });
 
-api.getOffers((response) => {
-  offers = response;
-  window.console.log(offers);
+api.getOffers((offersList) => {
+  offers = offersList;
 });
+
+/* TODO: при фильтрации эвентов прайс тоже пересчитывется, возможно он должен оставаться всегда один */
+const getTotalPrice = (arrEvents) => {
+  let acc = 0;
+  for (let item of arrEvents) {
+    acc += +item[`price`];
+  }
+
+  TOTAL_PRICE_EL.textContent = `€ ${acc}`;
+};
 
 const renderFilters = (data, section) => {
   for (let item of data) {
@@ -93,6 +102,7 @@ const renderNumPoints = (data) => {
         .then(() => {
           trip.unlockToSave();
           trip.destroy();
+          getTotalPrice(data);
         });
     };
 
@@ -111,6 +121,7 @@ const renderNumPoints = (data) => {
       deletePoint(arrPoints, item);
     };
 
+    getTotalPrice(data);
     point.render();
     POINT_SECTION.appendChild(point.element);
   }

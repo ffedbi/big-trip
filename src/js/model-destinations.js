@@ -5,11 +5,11 @@ export default class ModelDestinations {
     this.pictures = data[`pictures`] || [];
   }
 
-  static parseOffer(data) {
+  static parseDestination(data) {
     return new ModelDestinations(data);
   }
 
-  static parseOffers(data) {
-    return data.map(ModelDestinations.parsePoint);
+  static parseDestinations(data) {
+    return data.map(ModelDestinations.parseDestination);
   }
 }
