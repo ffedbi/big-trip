@@ -1,7 +1,7 @@
 import Chart from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import moment from "moment";
-import {DATA_POINTS} from "./data";
+import {POINTS_TYPE} from "./data";
 
 const MONEY_CANVAS = document.querySelector(`.statistic__money`);
 const TRANSPORT_CANVAS = document.querySelector(`.statistic__transport`);
@@ -21,7 +21,7 @@ const getDurationEvents = (arr) => {
 const getTypeEvent = (data) => {
   let result = {};
   data.forEach((item) => {
-    let typeName = `${(DATA_POINTS.POINTS_TYPE[item.type.typeName])} ${item.type.typeName}`;
+    let typeName = `${(POINTS_TYPE[item.type.typeName])} ${item.type.typeName}`;
     if (result[typeName]) {
       result[typeName]++;
     } else {
@@ -41,7 +41,7 @@ const getPriceEvents = (data) => {
   let result = {};
 
   data.forEach((item) => {
-    let typeName = `${(DATA_POINTS.POINTS_TYPE[item.type.typeName])} ${item.type.typeName}`;
+    let typeName = `${(POINTS_TYPE[item.type.typeName])} ${item.type.typeName}`;
     if (!result[typeName]) {
       result[typeName] = 0;
     }
@@ -59,7 +59,7 @@ const getPriceEvents = (data) => {
 const getTotalDurationEvents = (data) => {
   let result = {};
   data.forEach((item) => {
-    let typeName = `${(DATA_POINTS.POINTS_TYPE[item.type.typeName])} ${item.type.typeName}`;
+    let typeName = `${POINTS_TYPE[item.type.typeName]} ${item.type.typeName}`;
     if (!result[typeName]) {
       result[typeName] = getDurationEvents(item.timeline);
     } else {

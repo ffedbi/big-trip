@@ -1,12 +1,11 @@
 import {clearSection} from './utils';
-import {makeRandomPointDataArray} from "./make-random-point-data-array";
 import {DATA_FILTERS} from './data';
 import {initStat} from "./statictic";
 import Point from "./point";
 import Trip from "./trip";
 import Filter from "./filter";
+import API from "./api";
 
-const START_NUM_POINTS = 7;
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
 const POINT_SECTION = document.querySelector(`.trip-day__items`);
 const ACTIVE_BUTTON_CLASS = `view-switch__item--active`;
@@ -14,7 +13,50 @@ const MAIN = document.querySelector(`.main`);
 const STATISTIC = document.querySelector(`.statistic`);
 const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`);
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
-let pointData = makeRandomPointDataArray(START_NUM_POINTS);
+const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
+// const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
+
+const AUTHORIZATION = `Basic eo0w590ik29889a=${Math.random()}`;
+const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
+const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
+
+let arrPoints = null;
+// TODO: eslint error
+export let dest = null;
+export let offers = null;
+
+const msg = {
+  loading: `Loading route...`,
+  error: `Something went wrong while loading your route info. Check your connection or try again later`,
+};
+
+api.getPoints()
+  .then((points) => {
+    POINT_SECTION.textContent = msg.loading;
+    arrPoints = points;
+    renderNumPoints(arrPoints);
+  })
+  .catch(() => {
+    POINT_SECTION.textContent = msg.error;
+  });
+
+api.getDestinations((destinations) => {
+  dest = destinations;
+});
+
+api.getOffers((offersList) => {
+  offers = offersList;
+});
+
+/* TODO: при фильтрации эвентов прайс тоже пересчитывется, возможно он должен оставаться всегда один */
+const getTotalPrice = (arrEvents) => {
+  let acc = 0;
+  for (let item of arrEvents) {
+    acc += +item[`price`];
+  }
+
+  TOTAL_PRICE_EL.textContent = `€ ${acc}`;
+};
 
 const renderFilters = (data, section) => {
   for (let item of data) {
@@ -22,7 +64,7 @@ const renderFilters = (data, section) => {
 
     filter.onFilter = () => {
       clearSection(POINT_SECTION);
-      let newPointData = filterPoint(pointData, filter.name);
+      let newPointData = filterPoint(arrPoints, filter.name);
       renderNumPoints(newPointData, POINT_SECTION);
     };
 
@@ -32,18 +74,20 @@ const renderFilters = (data, section) => {
 };
 
 const deletePoint = (trip, id) => {
-  pointData.splice(id, 1);
+  arrPoints.splice(id, 1);
   return trip;
 };
 
-const renderNumPoints = (data, section) => {
-  for (let item of data) {
+const renderNumPoints = (data) => {
+  clearSection(POINT_SECTION);
+  for (let i = 0; i < data.length; i++) {
+    let item = data[i];
     let point = new Point(item);
     let trip = new Trip(item);
 
     point.onClick = () => {
       trip.render();
-      section.replaceChild(trip.element, point.element);
+      POINT_SECTION.replaceChild(trip.element, point.element);
       point.destroy();
     };
 
@@ -53,21 +97,53 @@ const renderNumPoints = (data, section) => {
       item.offers = newData.offers;
       item.price = newData.price;
       item.timeline = newData.timeline;
+      item.favorite = newData.favorite;
 
-      point.update(item);
+      trip.lockToSaving();
+      api.updatePoint({id: item.id, data: item.toRAW()})
+        .then((response) => {
+          if (response) {
+            point.update(response);
+            point.render();
+            POINT_SECTION.replaceChild(point.element, trip.element);
+          }
+        })
+        .catch(() => {
+          trip.shake();
+          trip.unlockToSave();
+        })
+        .then(() => {
+          trip.unlockToSave();
+          trip.destroy();
+          getTotalPrice(data);
+        });
+    };
+
+    trip.onDelete = ({id}) => {
+      trip.lockToDeleting();
+      api.deleteTask({id})
+        .then(() => api.getPoints())
+        .then(renderNumPoints)
+        .catch(() => {
+          trip.shake();
+        })
+        .then(() => {
+          trip.destroy();
+          trip.unlockToDelete();
+        });
+
+      deletePoint(arrPoints, item);
+    };
+
+    trip.onKeydownEsc = () => {
       point.render();
-      section.replaceChild(point.element, trip.element);
+      POINT_SECTION.replaceChild(point.element, trip.element);
       trip.destroy();
     };
 
-    trip.onDelete = () => {
-      deletePoint(trip, item);
-      trip.element.remove();
-      trip.destroy();
-    };
-
+    getTotalPrice(data);
     point.render();
-    section.appendChild(point.element);
+    POINT_SECTION.appendChild(point.element);
   }
 };
 
@@ -97,7 +173,7 @@ const onBtnStatisticClick = (e) => {
     e.target.classList.add(ACTIVE_BUTTON_CLASS);
     MAIN.classList.add(`visually-hidden`);
     STATISTIC.classList.remove(`visually-hidden`);
-    initStat(pointData);
+    initStat(arrPoints);
   }
 };
 
@@ -116,6 +192,5 @@ const onBtnTableClick = (e) => {
 clearSection(FILTERS_SECTION);
 clearSection(POINT_SECTION);
 renderFilters(DATA_FILTERS, FILTERS_SECTION);
-renderNumPoints(pointData, POINT_SECTION);
 BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
 BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);

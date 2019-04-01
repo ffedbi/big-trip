@@ -19,7 +19,9 @@ export default class Point extends Component {
   _makeHtmlButtonOffer() {
     let htmlBtnOffer = ``;
     for (let item of this._offers) {
-      htmlBtnOffer += `<li><button class="trip-point__offer">${item[0]} + &euro;&nbsp;${item[1]}</button></li>`;
+      if (item.accepted) {
+        htmlBtnOffer += `<li><button class="trip-point__offer">${item.title} + &euro;&nbsp;${item.price}</button></li>`;
+      }
     }
     return htmlBtnOffer;
   }
