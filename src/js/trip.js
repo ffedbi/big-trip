@@ -19,10 +19,12 @@ export default class Trip extends Component {
 
     this._onSubmit = null;
     this._onDelete = null;
+    this._onEsc = null;
     this._animationTimeoutId = null;
 
     this._onSubmitBtnClick = this._onSubmitBtnClick.bind(this);
     this._onDeleteBtnClick = this._onDeleteBtnClick.bind(this);
+    this._onKeydownEsc = this._onKeydownEsc.bind(this);
     this._onChangeType = this._onChangeType.bind(this);
     this._onChangeTimeStart = this._onChangeTimeStart.bind(this);
     this._onChangeTimeEnd = this._onChangeTimeEnd.bind(this);
@@ -31,6 +33,16 @@ export default class Trip extends Component {
 
   set onDelete(fn) {
     this._onDelete = fn;
+  }
+
+  set onKeydownEsc(fn) {
+    this._onEsc = fn;
+  }
+
+  _onKeydownEsc(e) {
+    if (typeof this._onEsc === `function` && e.keyCode === 27) {
+      this._onEsc();
+    }
   }
 
   _onChangePrice(e) {
@@ -77,7 +89,7 @@ export default class Trip extends Component {
         target.offers.push({
           title: result[0],
           price: result[1],
-          accepted: true
+          accepted: true,
         });
       },
       destination(value) {
@@ -151,6 +163,7 @@ export default class Trip extends Component {
       this._element.querySelector(`button[type="reset"]`).addEventListener(`click`, this._onDeleteBtnClick);
       this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
       this._element.querySelector(`input[name="price"]`).addEventListener(`change`, this._onChangePrice);
+      document.addEventListener(`keydown`, this._onKeydownEsc);
 
       flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`), {
         enableTime: true,
@@ -168,7 +181,7 @@ export default class Trip extends Component {
         altInput: true,
         noCalendar: true,
         defaultDate: [this._timeline[1]],
-        maixDate: this._timeline[0],
+        minDate: this._timeline[0],
         altFormat: `h:i K`,
         dateFormat: `h:i K`,
         onClose: this._onChangeTimeEnd,
@@ -181,8 +194,10 @@ export default class Trip extends Component {
       this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
       this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
       this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
+      document.removeEventListener(`keydown`, this._onKeydownEsc);
       flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`)).destroy();
       flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`)).destroy();
+      clearTimeout(this._animationTimeoutId);
     }
   }
 
@@ -210,17 +225,14 @@ export default class Trip extends Component {
     this._offers = data.offers;
   }
 
-  destroy() {
-    super.destroy();
-    clearTimeout(this._animationTimeoutId);
-  }
-
   lockToSaving() {
+    this._element.querySelector(`button[type="reset"]`).disabled = true;
     this._element.querySelector(`.point__button--save`).disabled = true;
     this._element.querySelector(`.point__button--save`).textContent = `Saving...`;
   }
 
   unlockToSave() {
+    this._element.querySelector(`button[type="reset"]`).disabled = false;
     this._element.querySelector(`.point__button--save`).disabled = false;
     this._element.querySelector(`.point__button--save`).textContent = `Save`;
   }
@@ -237,7 +249,6 @@ export default class Trip extends Component {
 
   shake() {
     if (this._element) {
-      this._element.style.borderColor = `#ff000`;
       const ANIMATION_TIMEOUT = 600;
       this._element.style.animation = `shake ${ANIMATION_TIMEOUT / 1000}s`;
 

@@ -14,18 +14,30 @@ const STATISTIC = document.querySelector(`.statistic`);
 const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`);
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
 const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
+// const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
+
 const AUTHORIZATION = `Basic eo0w590ik29889a=${Math.random()}`;
 const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
+
 let arrPoints = null;
 // TODO: eslint error
 export let dest = null;
 export let offers = null;
 
+const msg = {
+  loading: `Loading route...`,
+  error: `Something went wrong while loading your route info. Check your connection or try again later`,
+};
+
 api.getPoints()
   .then((points) => {
+    POINT_SECTION.textContent = msg.loading;
     arrPoints = points;
     renderNumPoints(arrPoints);
+  })
+  .catch(() => {
+    POINT_SECTION.textContent = msg.error;
   });
 
 api.getDestinations((destinations) => {
@@ -98,6 +110,7 @@ const renderNumPoints = (data) => {
         })
         .catch(() => {
           trip.shake();
+          trip.unlockToSave();
         })
         .then(() => {
           trip.unlockToSave();
@@ -115,10 +128,17 @@ const renderNumPoints = (data) => {
           trip.shake();
         })
         .then(() => {
+          trip.destroy();
           trip.unlockToDelete();
         });
 
       deletePoint(arrPoints, item);
+    };
+
+    trip.onKeydownEsc = () => {
+      point.render();
+      POINT_SECTION.replaceChild(point.element, trip.element);
+      trip.destroy();
     };
 
     getTotalPrice(data);
