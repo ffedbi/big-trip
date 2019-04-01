@@ -1,3 +1,5 @@
+import ModelPoint from "./model-point";
+
 const Method = {
   GET: `GET`,
   POST: `POST`,
@@ -17,7 +19,6 @@ const toJSON = (response) => {
   return response.json();
 };
 
-
 export default class API {
   constructor({endPoint, authorization}) {
     this._endPoint = endPoint;
@@ -27,19 +28,7 @@ export default class API {
   getPoints() {
     return this._load({url: `points`})
       .then(toJSON)
-      .then();
-  }
-
-  getDestinations() {
-    return this._load({url: `points`})
-      .then(toJSON)
-      .then();
-  }
-
-  getOffers() {
-    return this._load({url: `points`})
-      .then(toJSON)
-      .then();
+      .then(ModelPoint.parsePoints);
   }
 
   createPoint({task}) {
@@ -50,19 +39,19 @@ export default class API {
       headers: new Headers({'Content-Type': `application/json`}),
     })
       .then(toJSON)
-      .then();
+      .then(ModelPoint.parsePoint);
   }
 
   updatePoint({id, data}) {
     window.console.log(data);
     return this._load({
-      url: `point/${id}`,
+      url: `points/${id}`,
       method: Method.PUT,
       body: JSON.stringify(data),
       headers: new Headers({'Content-Type': `application/json`}),
     })
       .then(toJSON)
-      .then();
+      .then(ModelPoint.parsePoint);
   }
 
   deleteTask({id}) {

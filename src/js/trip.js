@@ -1,6 +1,6 @@
 import Component from "./component";
 import flatpickr from "flatpickr";
-import {DATA_POINTS} from "./data";
+import {DATA_POINTS, POINTS_TYPE} from "./data";
 import moment from "moment";
 
 export default class Trip extends Component {
@@ -14,10 +14,12 @@ export default class Trip extends Component {
     this._offers = data.offers;
     this._price = data.price;
     this._description = data.description;
-    this._picture = data.picture;
+    this._pictures = data.pictures;
+    this._favorite = data.favorite;
 
     this._onSubmit = null;
     this._onDelete = null;
+    this._animationTimeoutId = null;
 
     this._onSubmitBtnClick = this._onSubmitBtnClick.bind(this);
     this._onDeleteBtnClick = this._onDeleteBtnClick.bind(this);
@@ -48,9 +50,9 @@ export default class Trip extends Component {
   _makeHtmlButtonOffers() {
     let str = ``;
     for (let item of this._offers) {
-      str += `<input class="point__offers-input visually-hidden" type="checkbox" id="${item[0]}-${this._id}" name="offer" value="${item[0]}-${item[1]}" checked>
-            <label for="${item[0]}-${this._id}" class="point__offers-label">
-              <span class="point__offer-service">${item[0]}</span> + €<span class="point__offer-price">${item[1]}</span>
+      str += `<input class="point__offers-input visually-hidden" type="checkbox" id="${item.title}-${this._id}" name="offer" value="${item[0]}-${item[1]}" ${item.accepted ? `checked` : ``}>
+            <label for="${item.title}-${this._id}" class="point__offers-label">
+              <span class="point__offer-service">${item.title}</span> + €<span class="point__offer-price">${item.price}</span>
             </label>`.trim();
     }
 
@@ -82,14 +84,14 @@ export default class Trip extends Component {
       },
       [`travel-way`](value) {
         target.type = {
-          icon: DATA_POINTS.POINTS_TYPE[value],
+          icon: POINTS_TYPE[value],
           typeName: value,
         };
       },
-      [`time-start`](value) {
+      [`date-start`](value) {
         target.timeline[0] = new Date(moment(value, `h:mm`)).getTime();
       },
-      [`time-end`](value) {
+      [`date-end`](value) {
         target.timeline[1] = new Date(moment(value, `h:mm`)).getTime();
       },
       /* [`total-price`](value) {
@@ -124,7 +126,7 @@ export default class Trip extends Component {
 
   _onDeleteBtnClick() {
     if (typeof this._onDelete === `function`) {
-      this._onDelete();
+      this._onDelete({id: this._id});
     }
   }
 
@@ -174,7 +176,7 @@ export default class Trip extends Component {
   _onChangeType(e) {
     if (e.target.tagName.toLowerCase() === `input`) {
       let value = e.target.value;
-      this._type = {typeName: value, icon: DATA_POINTS.POINTS_TYPE[value]};
+      this._type = {typeName: value, icon: POINTS_TYPE[value]};
       this._partialUpdate();
     }
   }
@@ -195,6 +197,33 @@ export default class Trip extends Component {
     this._offers = data.offers;
   }
 
+  destroy() {
+    super.destroy();
+    clearTimeout(this._animationTimeoutId);
+  }
+
+  lockToSaving() {
+    this._element.querySelector(`.point__button--save`).disabled = true;
+    this._element.querySelector(`.point__button--save`).textContent = `Saving...`;
+  }
+
+  unlockToSave() {
+    this._element.querySelector(`.point__button--save`).disabled = false;
+    this._element.querySelector(`.point__button--save`).textContent = `Save`;
+  }
+
+  shake() {
+    if (this._element) {
+      this._element.style.borderColor = `#ff000`;
+      const ANIMATION_TIMEOUT = 600;
+      this._element.style.animation = `shake ${ANIMATION_TIMEOUT / 1000}s`;
+
+      this._animationTimeoutId = setTimeout(() => {
+        this._element.style.animation = ``;
+      }, ANIMATION_TIMEOUT);
+    }
+  }
+
   get template() {
     return `<article class="point" id="${this._id}">
     <form action="" method="get">
@@ -209,24 +238,24 @@ export default class Trip extends Component {
           <input type="checkbox" class="travel-way__toggle visually-hidden" id="travel-way__toggle-${this._id}">
           <div class="travel-way__select">
             <div class="travel-way__select-group">
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-taxi-${this._id}" name="travel-way" value="Taxi" ${this._type.typeName === `taxi` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-taxi-${this._id}" name="travel-way" value="taxi" ${this._type.typeName === `taxi` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-taxi-${this._id}">🚕 taxi</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-bus-${this._id}" name="travel-way" value="Bus" ${this._type.typeName === `bus` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-bus-${this._id}" name="travel-way" value="bus" ${this._type.typeName === `bus` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-bus-${this._id}">🚌 bus</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-train-${this._id}" name="travel-way" value="Train" ${this._type.typeName === `train` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-train-${this._id}" name="travel-way" value="train" ${this._type.typeName === `train` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-train-${this._id}">🚂 train</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-flight-${this._id}" name="travel-way" value="Flight" ${this._type.typeName === `flight` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-flight-${this._id}" name="travel-way" value="flight" ${this._type.typeName === `flight` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-flight-${this._id}">✈️ flight</label>
             </div>
 
             <div class="travel-way__select-group">
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-check-in-${this._id}" name="travel-way" value="Check-in" ${this._type.typeName === `check-in` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-check-in-${this._id}" name="travel-way" value="check-in" ${this._type.typeName === `check-in` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-check-in-${this._id}">🏨 check-in</label>
 
-              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-sightseeing-${this._id}" name="travel-way" value="Sight-seeing" ${this._type.typeName === `sight-seeing` ? `checked` : ``}>
+              <input class="travel-way__select-input visually-hidden" type="radio" id="travel-way-sightseeing-${this._id}" name="travel-way" value="sightseeing" ${this._type.typeName === `sight-seeing` ? `checked` : ``}>
               <label class="travel-way__select-label" for="travel-way-sightseeing-${this._id}">🏛 sightseeing</label>
             </div>
           </div>
@@ -261,7 +290,7 @@ export default class Trip extends Component {
         </div>
 
         <div class="paint__favorite-wrap">
-          <input type="checkbox" class="point__favorite-input visually-hidden" id="favorite" name="favorite">
+          <input type="checkbox" class="point__favorite-input visually-hidden" id="favorite" name="favorite" ${this._favorite ? `checked` : ``}>
           <label class="point__favorite" for="favorite">favorite</label>
         </div>
       </header>
@@ -277,7 +306,7 @@ export default class Trip extends Component {
           <h3 class="point__details-title">Destination</h3>
           <p class="point__destination-text">${this._description}</p>
           <div class="point__destination-images">
-            ${this._picture.map((item) => `<img src="${item}" alt="picture from place" class="point__destination-image">`).join(``).trim()}
+            ${this._pictures.map((item) => `<img src="${item.src}" alt="${item.description}" class="point__destination-image">`).join(``).trim()}
           </div>
         </section>
         <input type="hidden" class="point__total-price" name="total-price" value="">
