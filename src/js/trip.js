@@ -4,7 +4,7 @@ import {POINTS_TYPE} from "./data";
 import moment from "moment";
 
 export default class Trip extends Component {
-  constructor(data) {
+  constructor(data, offersList, destinations) {
     super();
 
     this._id = data.id;
@@ -16,6 +16,9 @@ export default class Trip extends Component {
     this._description = data.description;
     this._pictures = data.pictures;
     this._favorite = data.favorite;
+
+    this._offersList = offersList;
+    this._destinations = destinations || ``;
 
     this._onSubmit = null;
     this._onDelete = null;
@@ -29,6 +32,21 @@ export default class Trip extends Component {
     this._onChangeTimeStart = this._onChangeTimeStart.bind(this);
     this._onChangeTimeEnd = this._onChangeTimeEnd.bind(this);
     this._onChangePrice = this._onChangePrice.bind(this);
+    this._onChangePointDestination = this._onChangePointDestination.bind(this);
+  }
+
+  _onChangePointDestination(e) {
+    const value = e.target.value;
+
+    for (let item of this._destinations) {
+      if (item.name === value) {
+        this._city = item.name;
+        this._description = item.description;
+        this._pictures = item.pictures;
+      }
+    }
+
+    this._partialUpdate();
   }
 
   set onDelete(fn) {
@@ -69,6 +87,15 @@ export default class Trip extends Component {
     }
 
     return str;
+  }
+
+  _makeHtmlDestinations() {
+    let str = ``;
+    for (let item of this._destinations) {
+      str += `<option value="${item.name}"></option>`;
+    }
+
+    return `<datalist id="destination-select">${str}</datalist>`;
   }
 
   _onSubmitBtnClick(e) {
@@ -135,7 +162,6 @@ export default class Trip extends Component {
     const pointMapper = Trip.createMapper(entry);
     for (const pair of formData.entries()) {
       const [property, value] = pair;
-      // console.log(pair)
       if (pointMapper[property]) {
         pointMapper[property](value);
       }
@@ -163,6 +189,7 @@ export default class Trip extends Component {
       this._element.querySelector(`button[type="reset"]`).addEventListener(`click`, this._onDeleteBtnClick);
       this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
       this._element.querySelector(`input[name="price"]`).addEventListener(`change`, this._onChangePrice);
+      this._element.querySelector(`.point__destination-input`).addEventListener(`change`, this._onChangePointDestination);
       document.addEventListener(`keydown`, this._onKeydownEsc);
 
       flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`), {
@@ -194,6 +221,7 @@ export default class Trip extends Component {
       this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
       this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
       this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
+      this._element.querySelector(`.point__destination-input`).removeEventListener(`change`, this._onChangePointDestination);
       document.removeEventListener(`keydown`, this._onKeydownEsc);
       flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`)).destroy();
       flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`)).destroy();
@@ -205,6 +233,16 @@ export default class Trip extends Component {
     if (e.target.tagName.toLowerCase() === `input`) {
       let value = e.target.value;
       this._type = {typeName: value, icon: POINTS_TYPE[value]};
+      for (let item of this._offersList) {
+        if (item.type === value) {
+          this._offers = item.offers.map((offer) => {
+            return {
+              title: offer.name,
+              price: offer.price,
+            };
+          });
+        }
+      }
       this._partialUpdate();
     }
   }
@@ -297,13 +335,8 @@ export default class Trip extends Component {
 
         <div class="point__destination-wrap">
           <label class="point__destination-label" for="destination">${this._type.typeName} to</label>
-          <input class="point__destination-input" list="destination-select" id="destination" value="${this._city}" name="destination">
-          <datalist id="destination-select">
-            <option value="airport"></option>
-            <option value="Geneva"></option>
-            <option value="Chamonix"></option>
-            <option value="hotel"></option>
-          </datalist>
+          <input class="point__destination-input" list="destination-select" id="destination" placeholder="${this._city}" name="destination">
+          ${this._makeHtmlDestinations()}
         </div>
 
         <label class="point__time">

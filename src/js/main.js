@@ -19,36 +19,37 @@ const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
 const AUTHORIZATION = `Basic eo0w590ik29889a=${Math.random()}`;
 const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
-
 let arrPoints = null;
-// TODO: eslint error
-export let dest = null;
-export let offers = null;
+let dest = [];
+let offers = null;
 
 const msg = {
   loading: `Loading route...`,
   error: `Something went wrong while loading your route info. Check your connection or try again later`,
 };
 
-api.getPoints()
-  .then((points) => {
-    POINT_SECTION.textContent = msg.loading;
-    arrPoints = points;
-    renderNumPoints(arrPoints);
-  })
-  .catch(() => {
-    POINT_SECTION.textContent = msg.error;
-  });
+document.addEventListener(`DOMContentLoaded`, () => {
+  api.getDestinations()
+    .then((data) => {
+      dest = data;
+    });
 
-api.getDestinations((destinations) => {
-  dest = destinations;
+  api.getOffers()
+    .then((offersData) => {
+      offers = offersData;
+    });
+
+  api.getPoints()
+    .then((points) => {
+      POINT_SECTION.textContent = msg.loading;
+      arrPoints = points;
+      renderNumPoints(arrPoints);
+    })
+    .catch(() => {
+      POINT_SECTION.textContent = msg.error;
+    });
 });
 
-api.getOffers((offersList) => {
-  offers = offersList;
-});
-
-/* TODO: при фильтрации эвентов прайс тоже пересчитывется, возможно он должен оставаться всегда один */
 const getTotalPrice = (arrEvents) => {
   let acc = 0;
   for (let item of arrEvents) {
@@ -83,7 +84,7 @@ const renderNumPoints = (data) => {
   for (let i = 0; i < data.length; i++) {
     let item = data[i];
     let point = new Point(item);
-    let trip = new Trip(item);
+    let trip = new Trip(item, offers, dest);
 
     point.onClick = () => {
       trip.render();
@@ -110,7 +111,7 @@ const renderNumPoints = (data) => {
         })
         .catch(() => {
           trip.shake();
-          trip.unlockToSave();
+          trip.element.style.border = `1px solid #ff0000`;
         })
         .then(() => {
           trip.unlockToSave();
@@ -126,10 +127,11 @@ const renderNumPoints = (data) => {
         .then(renderNumPoints)
         .catch(() => {
           trip.shake();
+          trip.element.style.border = `1px solid #ff0000`;
         })
         .then(() => {
-          trip.destroy();
           trip.unlockToDelete();
+          trip.destroy();
         });
 
       deletePoint(arrPoints, item);
