@@ -198,19 +198,21 @@ export default class Trip extends Component {
         noCalendar: true,
         defaultDate: [this._timeline[0]],
         maxDate: this._timeline[1],
-        altFormat: `h:i K`,
-        dateFormat: `h:i K`,
+        [`time_24hr`]: true,
+        altFormat: `h:i`,
+        dateFormat: `h:i`,
         onClose: this._onChangeTimeStart,
       });
 
       flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`), {
         enableTime: true,
         altInput: true,
+        [`time_24hr`]: true,
         noCalendar: true,
         defaultDate: [this._timeline[1]],
         minDate: this._timeline[0],
-        altFormat: `h:i K`,
-        dateFormat: `h:i K`,
+        altFormat: `h:i`,
+        dateFormat: `h:i`,
         onClose: this._onChangeTimeEnd,
       });
     }
@@ -297,7 +299,7 @@ export default class Trip extends Component {
   }
 
   get template() {
-    return `<article class="point" id="${this._id}">
+    return `<article class="point">
     <form action="" method="get">
       <header class="point__header">
         <label class="point__date">

@@ -16,17 +16,30 @@ const STATISTIC = document.querySelector(`.statistic`);
 const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`);
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
 const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
-// const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
+const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
 
 const AUTHORIZATION = `Basic eo0w590ik29889a=${Math.random()}`;
 const POINT_STORE_KEY = `points-store-key`;
 const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
-const provider = new Provider({api, store});
+const provider = new Provider({api, store, generateId: () => Date.now() + Math.random()});
 let arrPoints = null;
 let dest = [];
 let offers = null;
+
+BUTTON_NEW_EVENT.addEventListener(`click`, function (e) {
+  e.preventDefault();
+  let data = arrPoints[0];
+  let newPointEdit = new Trip(data, offers, dest);
+  newPointEdit.render();
+  POINT_SECTION.insertBefore(newPointEdit.element, POINT_SECTION.firstChild);
+
+  newPointEdit.onSubmit = (newData) => {
+    window.console.log(newData);
+    provider.createPoint(newData);
+  };
+});
 
 const msg = {
   loading: `Loading route...`,
@@ -34,6 +47,16 @@ const msg = {
 };
 
 document.addEventListener(`DOMContentLoaded`, () => {
+  provider.getPoints()
+    .then((points) => {
+      POINT_SECTION.textContent = msg.loading;
+      arrPoints = points;
+      renderPoints(arrPoints);
+    })
+    .catch(() => {
+      POINT_SECTION.textContent = msg.error;
+    });
+
   provider.getDestinations()
     .then((data) => {
       dest = data;
@@ -42,16 +65,6 @@ document.addEventListener(`DOMContentLoaded`, () => {
   provider.getOffers()
     .then((offersData) => {
       offers = offersData;
-    });
-
-  provider.getPoints()
-    .then((points) => {
-      POINT_SECTION.textContent = msg.loading;
-      arrPoints = points;
-      renderNumPoints(arrPoints);
-    })
-    .catch(() => {
-      POINT_SECTION.textContent = msg.error;
     });
 });
 
@@ -71,7 +84,7 @@ const renderFilters = (data, section) => {
     filter.onFilter = () => {
       clearSection(POINT_SECTION);
       let newPointData = filterPoint(arrPoints, filter.name);
-      renderNumPoints(newPointData, POINT_SECTION);
+      renderPoints(newPointData, POINT_SECTION);
     };
 
     filter.render();
@@ -84,7 +97,7 @@ const deletePoint = (trip, id) => {
   return trip;
 };
 
-const renderNumPoints = (data) => {
+const renderPoints = (data) => {
   clearSection(POINT_SECTION);
   for (let i = 0; i < data.length; i++) {
     let item = data[i];
@@ -129,7 +142,7 @@ const renderNumPoints = (data) => {
       trip.lockToDeleting();
       provider.deletePoint({id})
         .then(() => provider.getPoints())
-        .then(renderNumPoints)
+        .then(renderPoints)
         .catch(() => {
           trip.shake();
           trip.element.style.border = `1px solid #ff0000`;

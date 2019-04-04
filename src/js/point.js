@@ -53,7 +53,7 @@ export default class Point extends Component {
   }
 
   get template() {
-    return `<article class="trip-point" id="${this._id}">
+    return `<article class="trip-point">
           <i class="trip-icon">${this._type.icon}</i>
           <h3 class="trip-point__title">${this._type.typeName} to ${this._city}</h3>
           <p class="trip-point__schedule">
