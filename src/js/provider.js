@@ -37,7 +37,7 @@ export default class Provider {
 
   createPoint({point}) {
     if (Provider._isOnline()) {
-      return this._api.createTask({point})
+      return this._api.createPoint({point})
         .then(() => {
           this._store.setItem({key: point.id, item: point.toRAW()});
           return point;
@@ -52,7 +52,7 @@ export default class Provider {
 
   updatePoint({id, data}) {
     if (Provider._isOnline()) {
-      return this._api.updateTask({id, data})
+      return this._api.updatePoint({id, data})
         .then((point) => {
           this._store.setItem({key: point.id, item: point.toRAW()});
           return point;
@@ -67,7 +67,7 @@ export default class Provider {
 
   deletePoint({id}) {
     if (Provider._isOnline()) {
-      return this._api.deleteTask({id})
+      return this._api.deletePoint({id})
         .then(() => {
           this._store.removeItem({key: id});
         });
@@ -80,9 +80,7 @@ export default class Provider {
 
   syncPoints() {
     return this._api.syncPoints({
-      tasks: objectToArray(this._store.getAll())
-    }).then(() => {
-      this._needSync = false;
+      points: objectToArray(this._store.getAll()),
     });
   }
 

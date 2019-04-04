@@ -33,15 +33,6 @@ const msg = {
   error: `Something went wrong while loading your route info. Check your connection or try again later`,
 };
 
-window.addEventListener(`offline`, () => {
-  document.title = `${document.title}[OFFLINE]`;
-});
-
-window.addEventListener(`online`, () => {
-  document.title = document.title.split(`[OFFLINE]`)[0];
-  provider.syncPoints();
-});
-
 document.addEventListener(`DOMContentLoaded`, () => {
   provider.getDestinations()
     .then((data) => {
@@ -115,7 +106,7 @@ const renderNumPoints = (data) => {
       item.favorite = newData.favorite;
 
       trip.lockToSaving();
-      api.updatePoint({id: item.id, data: item.toRAW()})
+      provider.updatePoint({id: item.id, data: item.toRAW()})
         .then((response) => {
           if (response) {
             point.update(response);
@@ -136,8 +127,8 @@ const renderNumPoints = (data) => {
 
     trip.onDelete = ({id}) => {
       trip.lockToDeleting();
-      api.deleteTask({id})
-        .then(() => api.getPoints())
+      provider.deletePoint({id})
+        .then(() => provider.getPoints())
         .then(renderNumPoints)
         .catch(() => {
           trip.shake();
@@ -204,6 +195,15 @@ const onBtnTableClick = (e) => {
     STATISTIC.classList.add(`visually-hidden`);
   }
 };
+
+window.addEventListener(`offline`, () => {
+  document.title = `${document.title}[OFFLINE]`;
+});
+
+window.addEventListener(`online`, () => {
+  document.title = document.title.split(`[OFFLINE]`)[0];
+  provider.syncPoints();
+});
 
 clearSection(FILTERS_SECTION);
 clearSection(POINT_SECTION);

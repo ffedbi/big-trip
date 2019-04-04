@@ -57,7 +57,6 @@ export default class API {
   }
 
   updatePoint({id, data}) {
-    window.console.log(data);
     return this._load({
       url: `points/${id}`,
       method: Method.PUT,
@@ -68,7 +67,7 @@ export default class API {
       .then(ModelPoint.parsePoint);
   }
 
-  deleteTask({id}) {
+  deletePoint({id}) {
     return this._load({url: `points/${id}`, method: Method.DELETE});
   }
 
@@ -80,7 +79,6 @@ export default class API {
       headers: new Headers({'Content-Type': `application/json`}),
     })
       .then(toJSON);
-    // .then(ModelPoint.parsePoints);
   }
 
   _load({url, method = Method.GET, body = null, headers = new Headers()}) {
