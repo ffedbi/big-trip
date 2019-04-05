@@ -29,14 +29,7 @@
         <a href="#stats" class="view-switch__item">Stats</a>
 
         <form class="trip-filter">
-          <input type="radio" id="filter-everything" name="filter" value="everything" checked>
-          <label class="trip-filter__item" for="filter-everything">Everything</label>
-
-          <input type="radio" id="filter-future" name="filter" value="future">
-          <label class="trip-filter__item" for="filter-future">Future</label>
-
-          <input type="radio" id="filter-past"name="filter" value="past">
-          <label class="trip-filter__item" for="filter-past">Past</label>
+            <!-- filter push -->
         </form>
       </nav>
 
@@ -48,16 +41,7 @@
 
 <main class="main content-wrap" id="table">
   <form class="trip-sorting">
-    <input type="radio" name="trip-sorting" id="sorting-event" value="event" checked>
-    <label class="trip-sorting__item trip-sorting__item--event" for="sorting-event">Event</label>
-
-    <input type="radio" name="trip-sorting" id="sorting-time" value="time">
-    <label class="trip-sorting__item trip-sorting__item--time" for="sorting-time">Time</label>
-
-    <input type="radio" name="trip-sorting" id="sorting-price" value="price">
-    <label class="trip-sorting__item trip-sorting__item--price" for="sorting-price">Price</label>
-
-    <span class="trip-sorting__item trip-sorting__item--offers">Offers</span>
+    <!-- filter-sort push  -->
   </form>
 
   <section class="trip-points">
@@ -69,68 +53,7 @@
       </article>
 
       <div class="trip-day__items">
-        <article class="trip-point">
-          <i class="trip-icon">🚕</i>
-          <h3 class="trip-point__title">Taxi to Airport</h3>
-          <p class="trip-point__schedule">
-            <span class="trip-point__timetable">10:00&nbsp;&mdash; 11:00</span>
-            <span class="trip-point__duration">1h 30m</span>
-          </p>
-          <p class="trip-point__price">&euro;&nbsp;20</p>
-          <ul class="trip-point__offers">
-            <li>
-              <button class="trip-point__offer">Order UBER +&euro;&nbsp;20</button>
-            </li>
-            <li>
-              <button class="trip-point__offer">Upgrade to business +&euro;&nbsp;20</button>
-            </li>
-          </ul>
-        </article>
-        <article class="trip-point">
-          <i class="trip-icon">✈️</i>
-          <h3 class="trip-point__title">Flight to Geneva</h3>
-          <p class="trip-point__schedule">
-            <span class="trip-point__timetable">10:00&nbsp;&mdash; 11:00</span>
-            <span class="trip-point__duration">1h 30m</span>
-          </p>
-          <p class="trip-point__price">&euro;&nbsp;20</p>
-          <ul class="trip-point__offers">
-            <li>
-              <button class="trip-point__offer">Upgrade to business +&euro;&nbsp;20</button>
-            </li>
-            <li>
-              <button class="trip-point__offer">Select meal +&euro;&nbsp;20</button>
-            </li>
-          </ul>
-        </article>
-        <article class="trip-point">
-          <i class="trip-icon">🚗</i>
-          <h3 class="trip-point__title">Drive to Chamonix</h3>
-          <p class="trip-point__schedule">
-            <span class="trip-point__timetable">10:00&nbsp;&mdash; 11:00</span>
-            <span class="trip-point__duration">1h 30m</span>
-          </p>
-          <p class="trip-point__price">&euro;&nbsp;20</p>
-          <ul class="trip-point__offers">
-            <li>
-                <button class="trip-point__offer">Rent a car +&euro;&nbsp;200</button>
-              </li>
-          </ul>
-        </article>
-        <article class="trip-point">
-          <i class="trip-icon">🏨</i>
-          <h3 class="trip-point__title">Check into a hotel</h3>
-          <p class="trip-point__schedule">
-            <span class="trip-point__timetable">10:00&nbsp;&mdash; 11:00</span>
-            <span class="trip-point__duration">1h 30m</span>
-          </p>
-          <p class="trip-point__price">&euro;&nbsp;20</p>
-          <ul class="trip-point__offers">
-            <li>
-              <button class="trip-point__offer">Add breakfast +&euro;&nbsp;20</button>
-            </li>
-          </ul>
-        </article>
+        <!-- points push -->
       </div>
     </section>
   </section>
@@ -148,5 +71,11 @@
     <canvas class="statistic__time-spend" width="900"></canvas>
   </div>
 </section>
+<script>
+  navigator.serviceWorker.register(`./sw.js`)
+    .catch((err) => {
+      throw err;
+    });
+</script>
 </body>
 </html>

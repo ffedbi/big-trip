@@ -22,17 +22,19 @@ export default class Provider {
     } else {
       const rawPointsMap = this._store.getAll();
       const rawPoints = objectToArray(rawPointsMap);
-      const points = ModelPoint.parsePoint(rawPoints);
+      const points = ModelPoint.parsePoints(rawPoints);
       return Promise.resolve(points);
     }
   }
 
   getDestinations() {
-    return this._api.getDestinations();
+    return this._api.getDestinations()
+      .then((destinations) => destinations);
   }
 
   getOffers() {
-    return this._api.getOffers();
+    return this._api.getOffers()
+      .then((offers) => offers);
   }
 
   createPoint({point}) {

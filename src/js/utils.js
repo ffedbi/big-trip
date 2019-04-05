@@ -11,3 +11,5 @@ export const createDOMElementFromHtml = (template) => {
   newElement.innerHTML = template;
   return newElement.firstChild;
 };
+
+export const getId = () => Date.now() + Math.random();

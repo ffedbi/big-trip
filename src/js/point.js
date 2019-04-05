@@ -4,7 +4,6 @@ import moment from "moment";
 export default class Point extends Component {
   constructor(data) {
     super();
-    this._id = data.id;
     this._type = data.type;
     this._city = data.city;
     this._timeline = data.timeline;
@@ -18,9 +17,14 @@ export default class Point extends Component {
 
   _makeHtmlButtonOffer() {
     let htmlBtnOffer = ``;
-    for (let item of this._offers) {
-      if (item.accepted) {
-        htmlBtnOffer += `<li><button class="trip-point__offer">${item.title} + &euro;&nbsp;${item.price}</button></li>`;
+    if (!this._offers.length) {
+      return htmlBtnOffer;
+    }
+
+    const counter = this._offers.length > 3 ? 3 : this._offers.length;
+    for (let i = 0; i < counter; i++) {
+      if (this._offers[i].accepted) {
+        htmlBtnOffer += `<li><button class="trip-point__offer">${this._offers[i].title} + &euro;&nbsp;${this._offers[i].price}</button></li>`;
       }
     }
     return htmlBtnOffer;
@@ -48,12 +52,13 @@ export default class Point extends Component {
   static _getDurationEvent(arr) {
     const timeStart = moment(arr[0]);
     const timeEnd = moment(arr[1]);
-    const diff = timeEnd.diff(timeStart);
-    return moment.utc(diff).format(`h:mm`);
+    const diff = moment(timeEnd.diff(timeStart));
+    const days = diff.day();
+    return days > 0 ? `${days}D ${diff.hour()}H ${diff.minutes()}M` : `${diff.hour()}H ${diff.minutes()}M`;
   }
 
   get template() {
-    return `<article class="trip-point" id="${this._id}">
+    return `<article class="trip-point">
           <i class="trip-icon">${this._type.icon}</i>
           <h3 class="trip-point__title">${this._type.typeName} to ${this._city}</h3>
           <p class="trip-point__schedule">

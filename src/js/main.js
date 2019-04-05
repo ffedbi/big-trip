@@ -1,5 +1,5 @@
-import {clearSection} from './utils';
-import {DATA_FILTERS} from './data';
+import {clearSection, getId} from './utils';
+import {DATA_FILTERS, DATA_SORTING_FILTERS} from './data';
 import {initStat} from "./statictic";
 import Point from "./point";
 import Trip from "./trip";
@@ -9,6 +9,7 @@ import Provider from "./provider";
 import Store from "./store";
 
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
+const SORTING_SECTION = document.querySelector(`.trip-sorting`);
 const POINT_SECTION = document.querySelector(`.trip-day__items`);
 const ACTIVE_BUTTON_CLASS = `view-switch__item--active`;
 const MAIN = document.querySelector(`.main`);
@@ -16,17 +17,28 @@ const STATISTIC = document.querySelector(`.statistic`);
 const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`);
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
 const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
-// const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
-
-const AUTHORIZATION = `Basic eo0w590ik29889a=${Math.random()}`;
+const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
 const POINT_STORE_KEY = `points-store-key`;
-const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
-const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
+
+const api = new API();
 const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
-const provider = new Provider({api, store});
-let arrPoints = null;
-let dest = [];
-let offers = null;
+const provider = new Provider({api, store, generateId: getId});
+let eventsData = null;
+let eventsDestination = null;
+let eventsOffers = null;
+
+BUTTON_NEW_EVENT.addEventListener(`click`, function (e) {
+  e.preventDefault();
+  let data = eventsData[0];
+  let newPointEdit = new Trip(data, eventsOffers, eventsDestination);
+  newPointEdit.render();
+  POINT_SECTION.insertBefore(newPointEdit.element, POINT_SECTION.firstChild);
+
+  newPointEdit.onSubmit = (newData) => {
+    window.console.log(newData);
+    provider.createPoint(newData);
+  };
+});
 
 const msg = {
   loading: `Loading route...`,
@@ -34,24 +46,24 @@ const msg = {
 };
 
 document.addEventListener(`DOMContentLoaded`, () => {
+  provider.getPoints()
+    .then((points) => {
+      POINT_SECTION.textContent = msg.loading;
+      eventsData = points;
+      renderPoints(eventsData);
+    })
+    .catch(() => {
+      POINT_SECTION.textContent = msg.error;
+    });
+
   provider.getDestinations()
     .then((data) => {
-      dest = data;
+      eventsDestination = data;
     });
 
   provider.getOffers()
     .then((offersData) => {
-      offers = offersData;
-    });
-
-  provider.getPoints()
-    .then((points) => {
-      POINT_SECTION.textContent = msg.loading;
-      arrPoints = points;
-      renderNumPoints(arrPoints);
-    })
-    .catch(() => {
-      POINT_SECTION.textContent = msg.error;
+      eventsOffers = offersData;
     });
 });
 
@@ -64,14 +76,14 @@ const getTotalPrice = (arrEvents) => {
   TOTAL_PRICE_EL.textContent = `€ ${acc}`;
 };
 
-const renderFilters = (data, section) => {
+const renderFilters = (data, section, type) => {
   for (let item of data) {
-    const filter = new Filter(item);
+    const filter = new Filter(item, type);
 
     filter.onFilter = () => {
       clearSection(POINT_SECTION);
-      let newPointData = filterPoint(arrPoints, filter.name);
-      renderNumPoints(newPointData, POINT_SECTION);
+      let newPointData = filterPoint(eventsData, filter.name);
+      renderPoints(newPointData, POINT_SECTION);
     };
 
     filter.render();
@@ -80,16 +92,16 @@ const renderFilters = (data, section) => {
 };
 
 const deletePoint = (trip, id) => {
-  arrPoints.splice(id, 1);
+  eventsData.splice(id, 1);
   return trip;
 };
 
-const renderNumPoints = (data) => {
+const renderPoints = (data) => {
   clearSection(POINT_SECTION);
   for (let i = 0; i < data.length; i++) {
     let item = data[i];
     let point = new Point(item);
-    let trip = new Trip(item, offers, dest);
+    let trip = new Trip(item, eventsOffers, eventsDestination);
 
     point.onClick = () => {
       trip.render();
@@ -129,7 +141,7 @@ const renderNumPoints = (data) => {
       trip.lockToDeleting();
       provider.deletePoint({id})
         .then(() => provider.getPoints())
-        .then(renderNumPoints)
+        .then(renderPoints)
         .catch(() => {
           trip.shake();
           trip.element.style.border = `1px solid #ff0000`;
@@ -139,7 +151,7 @@ const renderNumPoints = (data) => {
           trip.destroy();
         });
 
-      deletePoint(arrPoints, item);
+      deletePoint(eventsData, item);
     };
 
     trip.onKeydownEsc = () => {
@@ -159,6 +171,7 @@ const filterPoint = (points, filterName) => {
   const name = filterName.toLowerCase();
   switch (name) {
     case `everything`:
+    case `offers`:
       result = points;
       break;
     case `future`:
@@ -166,6 +179,12 @@ const filterPoint = (points, filterName) => {
       break;
     case `past`:
       result = points.filter((item) => new Date() > new Date(item.timeline[0]));
+      break;
+    case `price`:
+      result = points.sort((a, b) => b.price - a.price);
+      break;
+    case `time`:
+      result = points.sort((a, b) => b.timeline[0] - a.timeline[0]);
       break;
     default:
       result = points;
@@ -180,7 +199,7 @@ const onBtnStatisticClick = (e) => {
     e.target.classList.add(ACTIVE_BUTTON_CLASS);
     MAIN.classList.add(`visually-hidden`);
     STATISTIC.classList.remove(`visually-hidden`);
-    initStat(arrPoints);
+    initStat(eventsData);
   }
 };
 
@@ -205,8 +224,7 @@ window.addEventListener(`online`, () => {
   provider.syncPoints();
 });
 
-clearSection(FILTERS_SECTION);
-clearSection(POINT_SECTION);
 renderFilters(DATA_FILTERS, FILTERS_SECTION);
+renderFilters(DATA_SORTING_FILTERS, SORTING_SECTION, `sorting`);
 BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
 BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);
