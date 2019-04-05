@@ -225,6 +225,7 @@ export default class Trip extends Component {
       this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
       this._element.querySelector(`.point__destination-input`).removeEventListener(`change`, this._onChangePointDestination);
       document.removeEventListener(`keydown`, this._onKeydownEsc);
+
       flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`)).destroy();
       flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`)).destroy();
       clearTimeout(this._animationTimeoutId);

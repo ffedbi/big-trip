@@ -1,5 +1,5 @@
 import {clearSection, getId} from './utils';
-import {DATA_FILTERS} from './data';
+import {DATA_FILTERS, DATA_SORTING_FILTERS} from './data';
 import {initStat} from "./statictic";
 import Point from "./point";
 import Trip from "./trip";
@@ -9,6 +9,7 @@ import Provider from "./provider";
 import Store from "./store";
 
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
+const SORTING_SECTION = document.querySelector(`.trip-sorting`);
 const POINT_SECTION = document.querySelector(`.trip-day__items`);
 const ACTIVE_BUTTON_CLASS = `view-switch__item--active`;
 const MAIN = document.querySelector(`.main`);
@@ -17,15 +18,13 @@ const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`)
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
 const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
 const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
-
-const AUTHORIZATION = `Basic eo0w590ik29889a=${Math.random()}`;
 const POINT_STORE_KEY = `points-store-key`;
-const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
-const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
+
+const api = new API();
 const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
 const provider = new Provider({api, store, generateId: getId});
 let arrPoints = null;
-let dest = [];
+let dest = null;
 let offers = null;
 
 BUTTON_NEW_EVENT.addEventListener(`click`, function (e) {
@@ -77,9 +76,9 @@ const getTotalPrice = (arrEvents) => {
   TOTAL_PRICE_EL.textContent = `€ ${acc}`;
 };
 
-const renderFilters = (data, section) => {
+const renderFilters = (data, section, type) => {
   for (let item of data) {
-    const filter = new Filter(item);
+    const filter = new Filter(item, type);
 
     filter.onFilter = () => {
       clearSection(POINT_SECTION);
@@ -172,6 +171,7 @@ const filterPoint = (points, filterName) => {
   const name = filterName.toLowerCase();
   switch (name) {
     case `everything`:
+    case `offers`:
       result = points;
       break;
     case `future`:
@@ -179,6 +179,12 @@ const filterPoint = (points, filterName) => {
       break;
     case `past`:
       result = points.filter((item) => new Date() > new Date(item.timeline[0]));
+      break;
+    case `price`:
+      result = points.sort((a, b) => b.price - a.price);
+      break;
+    case `time`:
+      result = points.sort((a, b) => b.timeline[0] - a.timeline[0]);
       break;
     default:
       result = points;
@@ -218,8 +224,7 @@ window.addEventListener(`online`, () => {
   provider.syncPoints();
 });
 
-clearSection(FILTERS_SECTION);
-clearSection(POINT_SECTION);
 renderFilters(DATA_FILTERS, FILTERS_SECTION);
+renderFilters(DATA_SORTING_FILTERS, SORTING_SECTION, `sorting`);
 BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
 BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);

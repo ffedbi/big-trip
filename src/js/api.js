@@ -2,6 +2,8 @@ import ModelPoint from "./model-point";
 import ModelOffers from "./model-offers";
 import ModelDestinations from "./model-destinations";
 
+const AUTHORIZATION = `Basic eo0w590ik29889a=${Math.random()}`;
+const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
 const Method = {
   GET: `GET`,
   POST: `POST`,
@@ -22,9 +24,9 @@ const toJSON = (response) => {
 };
 
 export default class API {
-  constructor({endPoint, authorization}) {
-    this._endPoint = endPoint;
-    this._authorization = authorization;
+  constructor() {
+    this._endPoint = END_POINT;
+    this._authorization = AUTHORIZATION;
   }
 
   getPoints() {
