@@ -1,4 +1,4 @@
-import {clearSection} from './utils';
+import {clearSection, getId} from './utils';
 import {DATA_FILTERS} from './data';
 import {initStat} from "./statictic";
 import Point from "./point";
@@ -23,7 +23,7 @@ const POINT_STORE_KEY = `points-store-key`;
 const END_POINT = ` https://es8-demo-srv.appspot.com/big-trip/`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
-const provider = new Provider({api, store, generateId: () => Date.now() + Math.random()});
+const provider = new Provider({api, store, generateId: getId});
 let arrPoints = null;
 let dest = [];
 let offers = null;
