@@ -48,7 +48,7 @@ export default class Filter extends Component {
   get template() {
     const descriptionLowered = this._description.toLowerCase();
     let result;
-    if (this._type !== undefined) {
+    if (this._type) {
       result = `<span>
                   <input type="radio" name="trip-sorting" id="sorting-${descriptionLowered}" value="${descriptionLowered}" ${this._isChecked ? `checked` : ``}>
                   <label class="trip-sorting__item trip-sorting__item--${descriptionLowered}" for="sorting-${descriptionLowered}">${this._description}</label>

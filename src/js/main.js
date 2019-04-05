@@ -23,14 +23,14 @@ const POINT_STORE_KEY = `points-store-key`;
 const api = new API();
 const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
 const provider = new Provider({api, store, generateId: getId});
-let arrPoints = null;
-let dest = null;
-let offers = null;
+let eventsData = null;
+let eventsDestination = null;
+let eventsOffers = null;
 
 BUTTON_NEW_EVENT.addEventListener(`click`, function (e) {
   e.preventDefault();
-  let data = arrPoints[0];
-  let newPointEdit = new Trip(data, offers, dest);
+  let data = eventsData[0];
+  let newPointEdit = new Trip(data, eventsOffers, eventsDestination);
   newPointEdit.render();
   POINT_SECTION.insertBefore(newPointEdit.element, POINT_SECTION.firstChild);
 
@@ -49,8 +49,8 @@ document.addEventListener(`DOMContentLoaded`, () => {
   provider.getPoints()
     .then((points) => {
       POINT_SECTION.textContent = msg.loading;
-      arrPoints = points;
-      renderPoints(arrPoints);
+      eventsData = points;
+      renderPoints(eventsData);
     })
     .catch(() => {
       POINT_SECTION.textContent = msg.error;
@@ -58,12 +58,12 @@ document.addEventListener(`DOMContentLoaded`, () => {
 
   provider.getDestinations()
     .then((data) => {
-      dest = data;
+      eventsDestination = data;
     });
 
   provider.getOffers()
     .then((offersData) => {
-      offers = offersData;
+      eventsOffers = offersData;
     });
 });
 
@@ -82,7 +82,7 @@ const renderFilters = (data, section, type) => {
 
     filter.onFilter = () => {
       clearSection(POINT_SECTION);
-      let newPointData = filterPoint(arrPoints, filter.name);
+      let newPointData = filterPoint(eventsData, filter.name);
       renderPoints(newPointData, POINT_SECTION);
     };
 
@@ -92,7 +92,7 @@ const renderFilters = (data, section, type) => {
 };
 
 const deletePoint = (trip, id) => {
-  arrPoints.splice(id, 1);
+  eventsData.splice(id, 1);
   return trip;
 };
 
@@ -101,7 +101,7 @@ const renderPoints = (data) => {
   for (let i = 0; i < data.length; i++) {
     let item = data[i];
     let point = new Point(item);
-    let trip = new Trip(item, offers, dest);
+    let trip = new Trip(item, eventsOffers, eventsDestination);
 
     point.onClick = () => {
       trip.render();
@@ -151,7 +151,7 @@ const renderPoints = (data) => {
           trip.destroy();
         });
 
-      deletePoint(arrPoints, item);
+      deletePoint(eventsData, item);
     };
 
     trip.onKeydownEsc = () => {
@@ -199,7 +199,7 @@ const onBtnStatisticClick = (e) => {
     e.target.classList.add(ACTIVE_BUTTON_CLASS);
     MAIN.classList.add(`visually-hidden`);
     STATISTIC.classList.remove(`visually-hidden`);
-    initStat(arrPoints);
+    initStat(eventsData);
   }
 };
 
