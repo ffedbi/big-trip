@@ -7,7 +7,10 @@ import Filter from "./filter";
 import API from "./api";
 import Provider from "./provider";
 import Store from "./store";
+import moment from 'moment';
+import TravelDay from './travel-day';
 
+const DAYS_BLOCK = document.querySelector(`.trip-points`);
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
 const SORTING_SECTION = document.querySelector(`.trip-sorting`);
 const POINT_SECTION = document.querySelector(`.trip-day__items`);
@@ -18,14 +21,37 @@ const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`)
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
 const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
 const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
-const POINT_STORE_KEY = `points-store-key`;
 
+const POINT_STORE_KEY = `points-store-key`;
 const api = new API();
 const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
 const provider = new Provider({api, store, generateId: getId});
 let eventsData = null;
 let eventsDestination = null;
 let eventsOffers = null;
+
+const createArrayDates = (arrayPointsData) => {
+  let arrayDates = [];
+  for (let point of arrayPointsData) {
+    const DAY = moment(point.timeline[0]).format(`D MMM YY`);
+    if (arrayDates.indexOf(DAY) === -1) {
+      arrayDates.push(DAY);
+    }
+  }
+  return arrayDates;
+};
+
+const renderDays = (arrayPointsData) => {
+  const arrayDates = createArrayDates(arrayPointsData);
+  for (let date of arrayDates) {
+    const DAY = new TravelDay(date);
+    const ARRAY_FILTERED_EVENTS = arrayPointsData.filter((point) => moment(point.timeline[0]).format(`D MMM YY`) === date);
+    const DAY_ELEMENT_FROM_HTML = DAY.render();
+    DAYS_BLOCK.appendChild(DAY_ELEMENT_FROM_HTML);
+    const DIST_EVENTS = DAY_ELEMENT_FROM_HTML.querySelector(`.trip-day__items`);
+    renderPoints(ARRAY_FILTERED_EVENTS, DIST_EVENTS);
+  }
+};
 
 BUTTON_NEW_EVENT.addEventListener(`click`, function (e) {
   e.preventDefault();
@@ -40,7 +66,7 @@ BUTTON_NEW_EVENT.addEventListener(`click`, function (e) {
   };
 });
 
-const msg = {
+const Messages = {
   loading: `Loading route...`,
   error: `Something went wrong while loading your route info. Check your connection or try again later`,
 };
@@ -48,12 +74,16 @@ const msg = {
 document.addEventListener(`DOMContentLoaded`, () => {
   provider.getPoints()
     .then((points) => {
-      POINT_SECTION.textContent = msg.loading;
+      DAYS_BLOCK.textContent = Messages.loading;
       eventsData = points;
-      renderPoints(eventsData);
+      renderDays(eventsData);
+      getTotalPrice(eventsData);
     })
     .catch(() => {
-      POINT_SECTION.textContent = msg.error;
+      DAYS_BLOCK.textContent = Messages.error;
+    })
+    .then(() => {
+      // DAYS_BLOCK.textContent = ``;
     });
 
   provider.getDestinations()
@@ -78,16 +108,16 @@ const getTotalPrice = (arrEvents) => {
 
 const renderFilters = (data, section, type) => {
   for (let item of data) {
-    const filter = new Filter(item, type);
+    const FILTER = new Filter(item, type);
 
-    filter.onFilter = () => {
-      clearSection(POINT_SECTION);
-      let newPointData = filterPoint(eventsData, filter.name);
-      renderPoints(newPointData, POINT_SECTION);
+    FILTER.onFilter = () => {
+      clearSection(DAYS_BLOCK);
+      let newPointData = filterPoint(eventsData, FILTER.name);
+      renderDays(newPointData);
     };
 
-    filter.render();
-    section.appendChild(filter.element);
+    FILTER.render();
+    section.appendChild(FILTER.element);
   }
 };
 
@@ -96,8 +126,8 @@ const deletePoint = (trip, id) => {
   return trip;
 };
 
-const renderPoints = (data) => {
-  clearSection(POINT_SECTION);
+const renderPoints = (data, dist) => {
+  clearSection(data);
   for (let i = 0; i < data.length; i++) {
     let item = data[i];
     let point = new Point(item);
@@ -105,7 +135,7 @@ const renderPoints = (data) => {
 
     point.onClick = () => {
       trip.render();
-      POINT_SECTION.replaceChild(trip.element, point.element);
+      dist.replaceChild(trip.element, point.element);
       point.destroy();
     };
 
@@ -123,7 +153,7 @@ const renderPoints = (data) => {
           if (response) {
             point.update(response);
             point.render();
-            POINT_SECTION.replaceChild(point.element, trip.element);
+            dist.replaceChild(point.element, trip.element);
           }
         })
         .catch(() => {
@@ -133,7 +163,6 @@ const renderPoints = (data) => {
         .then(() => {
           trip.unlockToSave();
           trip.destroy();
-          getTotalPrice(data);
         });
     };
 
@@ -156,20 +185,19 @@ const renderPoints = (data) => {
 
     trip.onKeydownEsc = () => {
       point.render();
-      POINT_SECTION.replaceChild(point.element, trip.element);
+      dist.replaceChild(point.element, trip.element);
       trip.destroy();
     };
 
-    getTotalPrice(data);
     point.render();
-    POINT_SECTION.appendChild(point.element);
+    dist.appendChild(point.element);
   }
 };
 
 const filterPoint = (points, filterName) => {
   let result;
-  const name = filterName.toLowerCase();
-  switch (name) {
+  const NAME = filterName.toLowerCase();
+  switch (NAME) {
     case `everything`:
     case `offers`:
       result = points;
