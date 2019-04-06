@@ -36,10 +36,10 @@ export default class Trip extends Component {
   }
 
   _onChangePointDestination(e) {
-    const value = e.target.value;
+    const VALUE = e.target.value;
 
     for (let item of this._destinations) {
-      if (item.name === value) {
+      if (item.name === VALUE) {
         this._city = item.name;
         this._description = item.description;
         this._pictures = item.pictures;
@@ -68,8 +68,8 @@ export default class Trip extends Component {
   }
 
   _onChangeTimeStart() {
-    const valueInput = this._element.querySelector(`input[name="date-start"]`).value;
-    this._timeline[0] = new Date(moment(valueInput, `h:mm`)).getTime();
+    const INPUT_VLUE = this._element.querySelector(`input[name="date-start"]`).value;
+    this._timeline[0] = new Date(moment(INPUT_VLUE, `h:mm`)).getTime();
   }
 
   _onChangeTimeEnd() {
@@ -100,22 +100,22 @@ export default class Trip extends Component {
 
   _onSubmitBtnClick(e) {
     e.preventDefault();
-    const formData = new FormData(this._element.querySelector(`form`));
-    const newData = this._processForm(formData);
+    const FORM_DATA = new FormData(this._element.querySelector(`form`));
+    const NEW_DATA = this._processForm(FORM_DATA);
     if (typeof this._onSubmit === `function`) {
-      this._onSubmit(newData);
+      this._onSubmit(NEW_DATA);
     }
 
-    this.update(newData);
+    this.update(NEW_DATA);
   }
 
   static createMapper(target) {
     return {
       offer(value) {
-        const result = value.split(`-`);
+        const RESULT = value.split(`-`);
         target.offers.push({
-          title: result[0],
-          price: result[1],
+          title: RESULT[0],
+          price: RESULT[1],
           accepted: true,
         });
       },
@@ -148,7 +148,7 @@ export default class Trip extends Component {
   }
 
   _processForm(formData) {
-    const entry = {
+    const ENTRY = {
       type: this._type,
       offers: [],
       timeline: [],
@@ -159,14 +159,14 @@ export default class Trip extends Component {
       favorite: false,
     };
 
-    const pointMapper = Trip.createMapper(entry);
+    const pointMapper = Trip.createMapper(ENTRY);
     for (const pair of formData.entries()) {
       const [property, value] = pair;
       if (pointMapper[property]) {
         pointMapper[property](value);
       }
     }
-    return entry;
+    return ENTRY;
   }
 
   set onSubmit(fn) {
@@ -252,9 +252,9 @@ export default class Trip extends Component {
 
   _partialUpdate() {
     this._unbind();
-    const oldElem = this._element;
-    this._element.parentNode.replaceChild(this.render(), oldElem);
-    oldElem.remove();
+    const OLD_ELEMENT = this._element;
+    this._element.parentNode.replaceChild(this.render(), OLD_ELEMENT);
+    OLD_ELEMENT.remove();
     this._bind();
   }
 

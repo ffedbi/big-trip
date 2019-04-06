@@ -46,18 +46,18 @@ export default class Filter extends Component {
   }
 
   get template() {
-    const descriptionLowered = this._description.toLowerCase();
+    const DESCRIPTION_LOWERED = this._description.toLowerCase();
     let result;
     if (this._type) {
       result = `<span>
-                  <input type="radio" name="trip-sorting" id="sorting-${descriptionLowered}" value="${descriptionLowered}" ${this._isChecked ? `checked` : ``}>
-                  <label class="trip-sorting__item trip-sorting__item--${descriptionLowered}" for="sorting-${descriptionLowered}">${this._description}</label>
+                  <input type="radio" name="trip-sorting" id="sorting-${DESCRIPTION_LOWERED}" value="${DESCRIPTION_LOWERED}" ${this._isChecked ? `checked` : ``}>
+                  <label class="trip-sorting__item trip-sorting__item--${DESCRIPTION_LOWERED}" for="sorting-${DESCRIPTION_LOWERED}">${this._description}</label>
                 </span>`.trim();
       return result;
     }
     result = `<span>
-                 <input type="radio" id="filter-${descriptionLowered}" name="filter" value="${descriptionLowered}" ${this._isChecked ? ` checked` : ``}>
-                 <label class="trip-filter__item" for="filter-${descriptionLowered}">${this._description}</label>
+                 <input type="radio" id="filter-${DESCRIPTION_LOWERED}" name="filter" value="${DESCRIPTION_LOWERED}" ${this._isChecked ? ` checked` : ``}>
+                 <label class="trip-filter__item" for="filter-${DESCRIPTION_LOWERED}">${this._description}</label>
               </span>`.trim();
 
     return result;

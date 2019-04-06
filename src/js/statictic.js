@@ -13,9 +13,9 @@ let transportChart = null;
 let timeChart = null;
 
 const getDurationEvents = (arr) => {
-  const timeStart = arr[0];
-  const timeEnd = arr[1];
-  return timeEnd - timeStart;
+  const TIME_START = arr[0];
+  const TIME_END = arr[1];
+  return TIME_END - TIME_START;
 };
 
 const getTypeEvent = (data) => {
@@ -76,7 +76,7 @@ const getTotalDurationEvents = (data) => {
 };
 
 const createHorizontalBarChart = (canvasElement, chartData) => {
-  const chart = new Chart(canvasElement, {
+  const CHART = new Chart(canvasElement, {
     plugins: [ChartDataLabels],
     type: `horizontalBar`,
     data: {
@@ -140,8 +140,8 @@ const createHorizontalBarChart = (canvasElement, chartData) => {
       },
     },
   });
-  chart.height = BAR_HEIGHT * chartData.values.length;
-  return chart;
+  CHART.height = BAR_HEIGHT * chartData.values.length;
+  return CHART;
 };
 
 const updateChart = (chart, data) => {
@@ -152,17 +152,17 @@ const updateChart = (chart, data) => {
 };
 
 export const initStat = (data) => {
-  const moneyData = getPriceEvents(data);
-  const transportData = getTypeEvent(data);
-  const timeData = getTotalDurationEvents(data);
+  const MONEY_DATA = getPriceEvents(data);
+  const TRANSPORT_DATA = getTypeEvent(data);
+  const TIME_DATA = getTotalDurationEvents(data);
 
   if (!moneyChart) {
-    moneyChart = createHorizontalBarChart(MONEY_CANVAS, moneyData);
-    transportChart = createHorizontalBarChart(TRANSPORT_CANVAS, transportData);
-    timeChart = createHorizontalBarChart(TIME_CANVAS, timeData);
+    moneyChart = createHorizontalBarChart(MONEY_CANVAS, MONEY_DATA);
+    transportChart = createHorizontalBarChart(TRANSPORT_CANVAS, TRANSPORT_DATA);
+    timeChart = createHorizontalBarChart(TIME_CANVAS, TIME_DATA);
   }
 
-  updateChart(moneyChart, moneyData);
-  updateChart(transportChart, transportData);
-  updateChart(timeChart, timeData);
+  updateChart(moneyChart, MONEY_DATA);
+  updateChart(transportChart, TRANSPORT_DATA);
+  updateChart(timeChart, TIME_DATA);
 };

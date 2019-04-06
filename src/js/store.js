@@ -5,38 +5,38 @@ export default class Store {
   }
 
   setItem({key, item}) {
-    const items = this.getAll();
-    items[key] = item;
+    const ITEMS = this.getAll();
+    ITEMS[key] = item;
 
-    this._storage.setItem(this._storeKey, JSON.stringify(items));
+    this._storage.setItem(this._storeKey, JSON.stringify(ITEMS));
   }
 
   getItem({key}) {
-    const items = this.getAll();
+    const ITEMS = this.getAll();
 
-    return items[key];
+    return ITEMS[key];
   }
 
   removeItem({key}) {
-    const items = this.getAll();
-    delete items[key];
+    const ITEMS = this.getAll();
+    delete ITEMS[key];
 
-    this._storage.setItem(this._storeKey, JSON.stringify(items));
+    this._storage.setItem(this._storeKey, JSON.stringify(ITEMS));
   }
 
   getAll() {
-    const emptyItems = {};
-    const items = this._storage.getItem(this._storeKey);
+    const EMPTY_ITEMS = {};
+    const ITEMS = this._storage.getItem(this._storeKey);
 
-    if (!items) {
-      return emptyItems;
+    if (!ITEMS) {
+      return EMPTY_ITEMS;
     }
 
     try {
-      return JSON.parse(items);
+      return JSON.parse(ITEMS);
     } catch (e) {
-      window.console.log(`Error parse items. Error: ${e}. Items: ${items}`);
-      return emptyItems;
+      window.console.log(`Error parse items. Error: ${e}. Items: ${ITEMS}`);
+      return EMPTY_ITEMS;
     }
   }
 }

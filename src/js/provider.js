@@ -20,10 +20,10 @@ export default class Provider {
           return points;
         });
     } else {
-      const rawPointsMap = this._store.getAll();
-      const rawPoints = objectToArray(rawPointsMap);
-      const points = ModelPoint.parsePoints(rawPoints);
-      return Promise.resolve(points);
+      const RAW_POINTS_MAP = this._store.getAll();
+      const RAW_POINTS = objectToArray(RAW_POINTS_MAP);
+      const POINTS = ModelPoint.parsePoints(RAW_POINTS);
+      return Promise.resolve(POINTS);
     }
   }
 
@@ -60,10 +60,10 @@ export default class Provider {
           return point;
         });
     } else {
-      const point = data;
+      const POINT = data;
       this._needSync = true;
-      this._store.setItem({key: point.id, item: point});
-      return Promise.resolve(ModelPoint.parsePoint(point));
+      this._store.setItem({key: POINT.id, item: POINT});
+      return Promise.resolve(ModelPoint.parsePoint(POINT));
     }
   }
 
