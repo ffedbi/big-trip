@@ -166,7 +166,7 @@ const renderPoints = (data, dist) => {
       trip.lockToDeleting();
       provider.deletePoint({id})
         .then(() => provider.getPoints())
-        .then(renderPoints)
+        .then(renderDays)
         .catch(() => {
           trip.shake();
           trip.element.style.border = `1px solid #ff0000`;
