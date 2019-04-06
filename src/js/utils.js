@@ -12,4 +12,17 @@ export const createDOMElementFromHtml = (template) => {
   return NEW_ELEMENT.firstChild;
 };
 
+export const POINT_DEFAULT_DATA = {
+  id: null,
+  type: {typeName: `taxi`, icon: `🚕`},
+  city: ``,
+  destination: [],
+  price: 0,
+  timeline: [new Date(), new Date()],
+  pictures: [],
+  offers: [],
+  description: ``,
+  isFavorite: false,
+};
+
 export const getId = () => Date.now() + Math.random();

@@ -52,9 +52,8 @@ export default class Point extends Component {
   static _getDurationEvent(arr) {
     const TIME_START = moment(arr[0]);
     const TIME_END = moment(arr[1]);
-    const DURATION = moment.duration(TIME_END.diff(TIME_START));
-
-    return `${DURATION.hours()}H ${DURATION.minutes()}M`;
+    const DURATION = moment(TIME_END.diff(TIME_START));
+    return `${DURATION.hour()}H ${DURATION.minutes()}M`;
   }
 
   get template() {
@@ -62,7 +61,7 @@ export default class Point extends Component {
           <i class="trip-icon">${this._type.icon}</i>
           <h3 class="trip-point__title">${this._type.typeName} to ${this._city}</h3>
           <p class="trip-point__schedule">
-            <span class="trip-point__timetable">${moment(this._timeline[0]).format(`h:mm`)}&nbsp;&mdash; ${moment(this._timeline[1]).format(`h:mm`)}</span>
+            <span class="trip-point__timetable">${moment(this._timeline[0]).format(`h:mm A`)}&nbsp;&mdash; ${moment(this._timeline[1]).format(`h:mm A`)}</span>
             <span class="trip-point__duration">${this._duration}</span>
           </p>
           <p class="trip-point__price">&euro;&nbsp;${this._price}</p>

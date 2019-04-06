@@ -1,4 +1,4 @@
-import {clearSection, getId} from './utils';
+import {clearSection, getId, POINT_DEFAULT_DATA} from './utils';
 import {DATA_FILTERS, DATA_SORTING_FILTERS} from './data';
 import {initStat} from "./statictic";
 import Point from "./point";
@@ -13,7 +13,6 @@ import TravelDay from './travel-day';
 const DAYS_BLOCK = document.querySelector(`.trip-points`);
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
 const SORTING_SECTION = document.querySelector(`.trip-sorting`);
-const POINT_SECTION = document.querySelector(`.trip-day__items`);
 const ACTIVE_BUTTON_CLASS = `view-switch__item--active`;
 const MAIN = document.querySelector(`.main`);
 const STATISTIC = document.querySelector(`.statistic`);
@@ -42,6 +41,7 @@ const createArrayDates = (arrayPointsData) => {
 };
 
 const renderDays = (arrayPointsData) => {
+  clearSection(DAYS_BLOCK);
   const arrayDates = createArrayDates(arrayPointsData);
   for (let date of arrayDates) {
     const DAY = new TravelDay(date);
@@ -53,16 +53,14 @@ const renderDays = (arrayPointsData) => {
   }
 };
 
-BUTTON_NEW_EVENT.addEventListener(`click`, function (e) {
-  e.preventDefault();
-  let data = eventsData[0];
-  let newPointEdit = new Trip(data, eventsOffers, eventsDestination);
+BUTTON_NEW_EVENT.addEventListener(`click`, () => {
+  let newPointEdit = new Trip(POINT_DEFAULT_DATA, eventsOffers, eventsDestination);
   newPointEdit.render();
-  POINT_SECTION.insertBefore(newPointEdit.element, POINT_SECTION.firstChild);
+  DAYS_BLOCK.insertBefore(newPointEdit.element, DAYS_BLOCK.firstChild);
 
   newPointEdit.onSubmit = (newData) => {
     window.console.log(newData);
-    provider.createPoint(newData);
+    provider.createPoint({point: newData});
   };
 });
 
@@ -71,19 +69,17 @@ const Messages = {
   error: `Something went wrong while loading your route info. Check your connection or try again later`,
 };
 
+DAYS_BLOCK.textContent = Messages.loading;
+
 document.addEventListener(`DOMContentLoaded`, () => {
   provider.getPoints()
     .then((points) => {
-      DAYS_BLOCK.textContent = Messages.loading;
       eventsData = points;
       renderDays(eventsData);
       getTotalPrice(eventsData);
     })
     .catch(() => {
       DAYS_BLOCK.textContent = Messages.error;
-    })
-    .then(() => {
-      // DAYS_BLOCK.textContent = ``;
     });
 
   provider.getDestinations()
@@ -127,7 +123,7 @@ const deletePoint = (trip, id) => {
 };
 
 const renderPoints = (data, dist) => {
-  clearSection(data);
+  clearSection(dist);
   for (let i = 0; i < data.length; i++) {
     let item = data[i];
     let point = new Point(item);
