@@ -1,5 +1,5 @@
-import {clearSection, getId, POINT_DEFAULT_DATA} from './utils';
-import {DATA_FILTERS, DATA_SORTING_FILTERS} from './data';
+import {clearSection, getId} from './utils';
+import {DATA_FILTERS, DATA_SORTING_FILTERS, POINT_DEFAULT_DATA} from './data';
 import {initStat} from "./statictic";
 import Point from "./point";
 import Trip from "./trip";
@@ -20,6 +20,10 @@ const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`)
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
 const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
 const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
+const Messages = {
+  loading: `Loading route...`,
+  error: `Something went wrong while loading your route info. Check your connection or try again later`,
+};
 
 const POINT_STORE_KEY = `points-store-key`;
 const api = new API();
@@ -28,6 +32,7 @@ const provider = new Provider({api, store, generateId: getId});
 let eventsData = null;
 let eventsDestination = null;
 let eventsOffers = null;
+DAYS_BLOCK.textContent = Messages.loading;
 
 const createArrayDates = (arrayPointsData) => {
   let arrayDates = [];
@@ -44,12 +49,12 @@ const renderDays = (arrayPointsData) => {
   clearSection(DAYS_BLOCK);
   const arrayDates = createArrayDates(arrayPointsData);
   for (let date of arrayDates) {
-    const DAY = new TravelDay(date);
-    const ARRAY_FILTERED_EVENTS = arrayPointsData.filter((point) => moment(point.timeline[0]).format(`D MMM YY`) === date);
-    const DAY_ELEMENT_FROM_HTML = DAY.render();
-    DAYS_BLOCK.appendChild(DAY_ELEMENT_FROM_HTML);
-    const DIST_EVENTS = DAY_ELEMENT_FROM_HTML.querySelector(`.trip-day__items`);
-    renderPoints(ARRAY_FILTERED_EVENTS, DIST_EVENTS);
+    const day = new TravelDay(date);
+    const arrayFilteredEvents = arrayPointsData.filter((point) => moment(point.timeline[0]).format(`D MMM YY`) === date);
+    const dayElementFromHtml = day.render();
+    DAYS_BLOCK.appendChild(dayElementFromHtml);
+    const distEvents = dayElementFromHtml.querySelector(`.trip-day__items`);
+    renderPoints(arrayFilteredEvents, distEvents);
   }
 };
 
@@ -63,13 +68,6 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
     provider.createPoint({point: newData});
   };
 });
-
-const Messages = {
-  loading: `Loading route...`,
-  error: `Something went wrong while loading your route info. Check your connection or try again later`,
-};
-
-DAYS_BLOCK.textContent = Messages.loading;
 
 document.addEventListener(`DOMContentLoaded`, () => {
   provider.getPoints()
@@ -104,16 +102,16 @@ const getTotalPrice = (arrEvents) => {
 
 const renderFilters = (data, section, type) => {
   for (let item of data) {
-    const FILTER = new Filter(item, type);
+    const filter = new Filter(item, type);
 
-    FILTER.onFilter = () => {
+    filter.onFilter = () => {
       clearSection(DAYS_BLOCK);
-      let newPointData = filterPoint(eventsData, FILTER.name);
+      let newPointData = filterPoint(eventsData, filter.name);
       renderDays(newPointData);
     };
 
-    FILTER.render();
-    section.appendChild(FILTER.element);
+    filter.render();
+    section.appendChild(filter.element);
   }
 };
 
@@ -192,8 +190,8 @@ const renderPoints = (data, dist) => {
 
 const filterPoint = (points, filterName) => {
   let result;
-  const NAME = filterName.toLowerCase();
-  switch (NAME) {
+  const name = filterName.toLowerCase();
+  switch (name) {
     case `everything`:
     case `offers`:
       result = points;

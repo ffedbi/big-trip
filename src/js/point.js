@@ -50,10 +50,10 @@ export default class Point extends Component {
   }
 
   static _getDurationEvent(arr) {
-    const TIME_START = moment(arr[0]);
-    const TIME_END = moment(arr[1]);
-    const DURATION = moment(TIME_END.diff(TIME_START));
-    return `${DURATION.hour()}H ${DURATION.minutes()}M`;
+    const timeStart = moment(arr[0]);
+    const timeEnd = moment(arr[1]);
+    const duration = moment(timeEnd.diff(timeStart));
+    return `${duration.hour()}H ${duration.minutes()}M`;
   }
 
   get template() {

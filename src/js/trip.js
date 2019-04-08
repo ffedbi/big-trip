@@ -100,22 +100,22 @@ export default class Trip extends Component {
 
   _onSubmitBtnClick(e) {
     e.preventDefault();
-    const FORM_DATA = new FormData(this._element.querySelector(`form`));
-    const NEW_DATA = this._processForm(FORM_DATA);
+    const formData = new FormData(this._element.querySelector(`form`));
+    const newData = this._processForm(formData);
     if (typeof this._onSubmit === `function`) {
-      this._onSubmit(NEW_DATA);
+      this._onSubmit(newData);
     }
 
-    this.update(NEW_DATA);
+    this.update(newData);
   }
 
   static createMapper(target) {
     return {
       offer(value) {
-        const RESULT = value.split(`-`);
+        const result = value.split(`-`);
         target.offers.push({
-          title: RESULT[0],
-          price: RESULT[1],
+          title: result[0],
+          price: result[1],
           accepted: true,
         });
       },
@@ -148,7 +148,7 @@ export default class Trip extends Component {
   }
 
   _processForm(formData) {
-    const ENTRY = {
+    const entry = {
       type: this._type,
       offers: [],
       timeline: [],
@@ -159,14 +159,14 @@ export default class Trip extends Component {
       favorite: false,
     };
 
-    const pointMapper = Trip.createMapper(ENTRY);
+    const pointMapper = Trip.createMapper(entry);
     for (const pair of formData.entries()) {
       const [property, value] = pair;
       if (pointMapper[property]) {
         pointMapper[property](value);
       }
     }
-    return ENTRY;
+    return entry;
   }
 
   set onSubmit(fn) {
@@ -252,9 +252,9 @@ export default class Trip extends Component {
 
   _partialUpdate() {
     this._unbind();
-    const OLD_ELEMENT = this._element;
-    this._element.parentNode.replaceChild(this.render(), OLD_ELEMENT);
-    OLD_ELEMENT.remove();
+    const oldElement = this._element;
+    this._element.parentNode.replaceChild(this.render(), oldElement);
+    oldElement.remove();
     this._bind();
   }
 
@@ -290,12 +290,12 @@ export default class Trip extends Component {
 
   shake() {
     if (this._element) {
-      const ANIMATION_TIMEOUT = 600;
-      this._element.style.animation = `shake ${ANIMATION_TIMEOUT / 1000}s`;
+      const animationTimeout = 600;
+      this._element.style.animation = `shake ${animationTimeout / 1000}s`;
 
       this._animationTimeoutId = setTimeout(() => {
         this._element.style.animation = ``;
-      }, ANIMATION_TIMEOUT);
+      }, animationTimeout);
     }
   }
 
