@@ -14,8 +14,8 @@ const DAYS_BLOCK = document.querySelector(`.trip-points`);
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
 const SORTING_SECTION = document.querySelector(`.trip-sorting`);
 const ACTIVE_BUTTON_CLASS = `view-switch__item--active`;
-const MAIN = document.querySelector(`.main`);
-const STATISTIC = document.querySelector(`.statistic`);
+const SECTION_MAIN = document.querySelector(`.main`);
+const SECTION_STATISTIC = document.querySelector(`.statistic`);
 const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`);
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
 const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
@@ -34,28 +34,33 @@ let eventsDestination = null;
 let eventsOffers = null;
 DAYS_BLOCK.textContent = Messages.loading;
 
-const createArrayDates = (arrayPointsData) => {
-  let arrayDates = [];
-  for (let point of arrayPointsData) {
-    const DAY = moment(point.timeline[0]).format(`D MMM YY`);
-    if (arrayDates.indexOf(DAY) === -1) {
-      arrayDates.push(DAY);
+const createObjEvents = (arrPoints) => {
+  let result = {};
+
+  for (let point of arrPoints) {
+    let day = moment(point.timeline[0]).format(`D MMM YY`);
+    if (!result[day]) {
+      result[day] = [];
     }
+    result[day].push(point);
   }
-  return arrayDates;
+
+  return result;
 };
 
-const renderDays = (arrayPointsData) => {
+/* fix for..in */
+const renderDays = (arr) => {
   clearSection(DAYS_BLOCK);
-  const arrayDates = createArrayDates(arrayPointsData);
-  for (let date of arrayDates) {
-    const day = new TravelDay(date);
-    const arrayFilteredEvents = arrayPointsData.filter((point) => moment(point.timeline[0]).format(`D MMM YY`) === date);
-    const dayElementFromHtml = day.render();
-    DAYS_BLOCK.appendChild(dayElementFromHtml);
-    const distEvents = dayElementFromHtml.querySelector(`.trip-day__items`);
-    renderPoints(arrayFilteredEvents, distEvents);
+  let data = createObjEvents(arr);
+  for (let key in data) {
+    if (data.hasOwnProperty(key)) {
+      let day = new TravelDay(key).render();
+      DAYS_BLOCK.appendChild(day);
+      const distEvents = day.querySelector(`.trip-day__items`);
+      renderPoints(data[key], distEvents);
+    }
   }
+
 };
 
 BUTTON_NEW_EVENT.addEventListener(`click`, () => {
@@ -67,28 +72,6 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
     window.console.log(newData);
     provider.createPoint({point: newData});
   };
-});
-
-document.addEventListener(`DOMContentLoaded`, () => {
-  provider.getPoints()
-    .then((points) => {
-      eventsData = points;
-      renderDays(eventsData);
-      getTotalPrice(eventsData);
-    })
-    .catch(() => {
-      DAYS_BLOCK.textContent = Messages.error;
-    });
-
-  provider.getDestinations()
-    .then((data) => {
-      eventsDestination = data;
-    });
-
-  provider.getOffers()
-    .then((offersData) => {
-      eventsOffers = offersData;
-    });
 });
 
 const getTotalPrice = (arrEvents) => {
@@ -219,8 +202,8 @@ const onBtnStatisticClick = (e) => {
   if (!e.target.classList.contains(ACTIVE_BUTTON_CLASS)) {
     BUTTON_TABLE.classList.remove(ACTIVE_BUTTON_CLASS);
     e.target.classList.add(ACTIVE_BUTTON_CLASS);
-    MAIN.classList.add(`visually-hidden`);
-    STATISTIC.classList.remove(`visually-hidden`);
+    SECTION_MAIN.classList.add(`visually-hidden`);
+    SECTION_STATISTIC.classList.remove(`visually-hidden`);
     initStat(eventsData);
   }
 };
@@ -230,10 +213,10 @@ const onBtnTableClick = (e) => {
   if (!e.target.classList.contains(ACTIVE_BUTTON_CLASS)) {
     BUTTON_STATISTIC.classList.remove(ACTIVE_BUTTON_CLASS);
     e.target.classList.add(ACTIVE_BUTTON_CLASS);
-    MAIN.classList.add(`visually-hidden`);
-    STATISTIC.classList.remove(`visually-hidden`);
-    MAIN.classList.remove(`visually-hidden`);
-    STATISTIC.classList.add(`visually-hidden`);
+    SECTION_MAIN.classList.add(`visually-hidden`);
+    SECTION_STATISTIC.classList.remove(`visually-hidden`);
+    SECTION_MAIN.classList.remove(`visually-hidden`);
+    SECTION_STATISTIC.classList.add(`visually-hidden`);
   }
 };
 
@@ -250,3 +233,25 @@ renderFilters(DATA_FILTERS, FILTERS_SECTION);
 renderFilters(DATA_SORTING_FILTERS, SORTING_SECTION, `sorting`);
 BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
 BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);
+
+document.addEventListener(`DOMContentLoaded`, () => {
+  provider.getPoints()
+    .then((points) => {
+      eventsData = points;
+      getTotalPrice(eventsData);
+      renderDays(eventsData);
+    })
+    .catch(() => {
+      DAYS_BLOCK.textContent = Messages.error;
+    });
+
+  provider.getDestinations()
+    .then((data) => {
+      eventsDestination = data;
+    });
+
+  provider.getOffers()
+    .then((offersData) => {
+      eventsOffers = offersData;
+    });
+});

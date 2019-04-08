@@ -17,10 +17,6 @@ export default class Component {
     throw new Error(`You have to define template.`);
   }
 
-  _bind() {}
-
-  _unbind() {}
-
   render() {
     this.destroy();
     this._element = createDOMElementFromHtml(this.template);
@@ -35,4 +31,10 @@ export default class Component {
   }
 
   update() {}
+
+  _bind() {}
+
+  _unbind() {}
+
+
 }

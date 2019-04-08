@@ -35,270 +35,6 @@ export default class Trip extends Component {
     this._onChangePointDestination = this._onChangePointDestination.bind(this);
   }
 
-  _onChangePointDestination(e) {
-    const VALUE = e.target.value;
-
-    for (let item of this._destinations) {
-      if (item.name === VALUE) {
-        this._city = item.name;
-        this._description = item.description;
-        this._pictures = item.pictures;
-      }
-    }
-
-    this._partialUpdate();
-  }
-
-  set onDelete(fn) {
-    this._onDelete = fn;
-  }
-
-  set onKeydownEsc(fn) {
-    this._onEsc = fn;
-  }
-
-  _onKeydownEsc(e) {
-    if (typeof this._onEsc === `function` && e.keyCode === 27) {
-      this._onEsc();
-    }
-  }
-
-  _onChangePrice(e) {
-    this._price = e.target.value;
-  }
-
-  _onChangeTimeStart() {
-    const INPUT_VLUE = this._element.querySelector(`input[name="date-start"]`).value;
-    this._timeline[0] = new Date(moment(INPUT_VLUE, `h:mm`)).getTime();
-  }
-
-  _onChangeTimeEnd() {
-    const valueInput = this._element.querySelector(`input[name="date-end"]`).value;
-    this._timeline[1] = new Date(moment(valueInput, `h:mm`)).getTime();
-  }
-
-  _makeHtmlButtonOffers() {
-    let str = ``;
-    for (let item of this._offers) {
-      str += `<input class="point__offers-input visually-hidden" type="checkbox" id="${item.title}-${this._id}" name="offer" value="${item.title}-${item.price}" ${item.accepted ? `checked` : ``}>
-            <label for="${item.title}-${this._id}" class="point__offers-label">
-              <span class="point__offer-service">${item.title}</span> + €<span class="point__offer-price">${item.price}</span>
-            </label>`.trim();
-    }
-
-    return str;
-  }
-
-  _makeHtmlDestinations() {
-    let str = ``;
-    for (let item of this._destinations) {
-      str += `<option value="${item.name}"></option>`;
-    }
-
-    return `<datalist id="destination-select">${str}</datalist>`;
-  }
-
-  _onSubmitBtnClick(e) {
-    e.preventDefault();
-    const formData = new FormData(this._element.querySelector(`form`));
-    const newData = this._processForm(formData);
-    if (typeof this._onSubmit === `function`) {
-      this._onSubmit(newData);
-    }
-
-    this.update(newData);
-  }
-
-  static createMapper(target) {
-    return {
-      offer(value) {
-        const result = value.split(`-`);
-        target.offers.push({
-          title: result[0],
-          price: result[1],
-          accepted: true,
-        });
-      },
-      destination(value) {
-        target.city = value;
-      },
-      price(value) {
-        target.price = value;
-      },
-      [`travel-way`](value) {
-        target.type = {
-          icon: POINTS_TYPE[value],
-          typeName: value,
-        };
-      },
-      [`date-start`](value) {
-        target.timeline[0] = new Date(moment(value, `h:mm`)).getTime();
-      },
-      [`date-end`](value) {
-        target.timeline[1] = new Date(moment(value, `h:mm`)).getTime();
-      },
-      favorite(value) {
-        if (value === `on`) {
-          target.favorite = true;
-        }
-      },
-      /* [`total-price`](value) {
-      } */
-    };
-  }
-
-  _processForm(formData) {
-    const entry = {
-      type: this._type,
-      offers: [],
-      timeline: [],
-      price: null,
-      duration: new Date(),
-      city: ``,
-      totalPrice: 0,
-      favorite: false,
-    };
-
-    const pointMapper = Trip.createMapper(entry);
-    for (const pair of formData.entries()) {
-      const [property, value] = pair;
-      if (pointMapper[property]) {
-        pointMapper[property](value);
-      }
-    }
-    return entry;
-  }
-
-  set onSubmit(fn) {
-    this._onSubmit = fn;
-  }
-
-  _onDeleteBtnClick() {
-    if (typeof this._onDelete === `function`) {
-      this._onDelete({id: this._id});
-    }
-  }
-
-  set onDelete(fn) {
-    this._onDelete = fn;
-  }
-
-  _bind() {
-    if (this._element) {
-      this._element.querySelector(`.point__button--save`).addEventListener(`click`, this._onSubmitBtnClick);
-      this._element.querySelector(`button[type="reset"]`).addEventListener(`click`, this._onDeleteBtnClick);
-      this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
-      this._element.querySelector(`input[name="price"]`).addEventListener(`change`, this._onChangePrice);
-      this._element.querySelector(`.point__destination-input`).addEventListener(`change`, this._onChangePointDestination);
-      document.addEventListener(`keydown`, this._onKeydownEsc);
-
-      flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`), {
-        enableTime: true,
-        altInput: true,
-        noCalendar: true,
-        defaultDate: [this._timeline[0]],
-        maxDate: this._timeline[1],
-        [`time_24hr`]: true,
-        altFormat: `h:i`,
-        dateFormat: `h:i`,
-        onClose: this._onChangeTimeStart,
-      });
-
-      flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`), {
-        enableTime: true,
-        altInput: true,
-        [`time_24hr`]: true,
-        noCalendar: true,
-        defaultDate: [this._timeline[1]],
-        minDate: this._timeline[0],
-        altFormat: `h:i`,
-        dateFormat: `h:i`,
-        onClose: this._onChangeTimeEnd,
-      });
-    }
-  }
-
-  _unbind() {
-    if (this._element) {
-      this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
-      this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
-      this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
-      this._element.querySelector(`.point__destination-input`).removeEventListener(`change`, this._onChangePointDestination);
-      document.removeEventListener(`keydown`, this._onKeydownEsc);
-
-      flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`)).destroy();
-      flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`)).destroy();
-      clearTimeout(this._animationTimeoutId);
-    }
-  }
-
-  _onChangeType(e) {
-    if (e.target.tagName.toLowerCase() === `input`) {
-      let value = e.target.value;
-      this._type = {typeName: value, icon: POINTS_TYPE[value]};
-      for (let item of this._offersList) {
-        if (item.type === value) {
-          this._offers = item.offers.map((offer) => {
-            return {
-              title: offer.name,
-              price: offer.price,
-            };
-          });
-        }
-      }
-      this._partialUpdate();
-    }
-  }
-
-  _partialUpdate() {
-    this._unbind();
-    const oldElement = this._element;
-    this._element.parentNode.replaceChild(this.render(), oldElement);
-    oldElement.remove();
-    this._bind();
-  }
-
-  update(data) {
-    this._type = data.type;
-    this._city = data.city;
-    this._timeline = data.timeline;
-    this._price = data.price;
-    this._offers = data.offers;
-  }
-
-  lockToSaving() {
-    this._element.querySelector(`button[type="reset"]`).disabled = true;
-    this._element.querySelector(`.point__button--save`).disabled = true;
-    this._element.querySelector(`.point__button--save`).textContent = `Saving...`;
-  }
-
-  unlockToSave() {
-    this._element.querySelector(`button[type="reset"]`).disabled = false;
-    this._element.querySelector(`.point__button--save`).disabled = false;
-    this._element.querySelector(`.point__button--save`).textContent = `Save`;
-  }
-
-  lockToDeleting() {
-    this._element.querySelector(`button[type="reset"]`).disabled = true;
-    this._element.querySelector(`button[type="reset"]`).textContent = `Deleting...`;
-  }
-
-  unlockToDelete() {
-    this._element.querySelector(`button[type="reset"]`).disabled = false;
-    this._element.querySelector(`button[type="reset"]`).textContent = `Delete`;
-  }
-
-  shake() {
-    if (this._element) {
-      const animationTimeout = 600;
-      this._element.style.animation = `shake ${animationTimeout / 1000}s`;
-
-      this._animationTimeoutId = setTimeout(() => {
-        this._element.style.animation = ``;
-      }, animationTimeout);
-    }
-  }
-
   get template() {
     return `<article class="point">
     <form action="" method="get">
@@ -376,13 +112,270 @@ export default class Trip extends Component {
           <h3 class="point__details-title">Destination</h3>
           <p class="point__destination-text">${this._description}</p>
           <div class="point__destination-images">
-            ${this._pictures.map((item) => `<img src="${item.src}" alt="${item.description}" class="point__destination-image">`).join(``).trim()}
+            ${this._makeHtmlPictures()}
           </div>
         </section>
         <input type="hidden" class="point__total-price" name="total-price" value="">
       </section>
     </form>
   </article>`.trim();
+  }
+
+  set onKeydownEsc(fn) {
+    this._onEsc = fn;
+  }
+
+  set onSubmit(fn) {
+    this._onSubmit = fn;
+  }
+
+  set onDelete(fn) {
+    this._onDelete = fn;
+  }
+
+  update(data) {
+    this._type = data.type;
+    this._city = data.city;
+    this._timeline = data.timeline;
+    this._price = data.price;
+    this._offers = data.offers;
+  }
+
+  lockToSaving() {
+    this._element.querySelector(`button[type="reset"]`).disabled = true;
+    this._element.querySelector(`.point__button--save`).disabled = true;
+    this._element.querySelector(`.point__button--save`).textContent = `Saving...`;
+  }
+
+  unlockToSave() {
+    this._element.querySelector(`button[type="reset"]`).disabled = false;
+    this._element.querySelector(`.point__button--save`).disabled = false;
+    this._element.querySelector(`.point__button--save`).textContent = `Save`;
+  }
+
+  lockToDeleting() {
+    this._element.querySelector(`button[type="reset"]`).disabled = true;
+    this._element.querySelector(`button[type="reset"]`).textContent = `Deleting...`;
+  }
+
+  unlockToDelete() {
+    this._element.querySelector(`button[type="reset"]`).disabled = false;
+    this._element.querySelector(`button[type="reset"]`).textContent = `Delete`;
+  }
+
+  shake() {
+    if (this._element) {
+      const animationTimeout = 600;
+      this._element.style.animation = `shake ${animationTimeout / 1000}s`;
+
+      this._animationTimeoutId = setTimeout(() => {
+        this._element.style.animation = ``;
+      }, animationTimeout);
+    }
+  }
+
+  _onChangePointDestination(e) {
+    const VALUE = e.target.value;
+
+    for (let item of this._destinations) {
+      if (item.name === VALUE) {
+        this._city = item.name;
+        this._description = item.description;
+        this._pictures = item.pictures;
+      }
+    }
+
+    this._partialUpdate();
+  }
+
+  _onKeydownEsc(e) {
+    if (typeof this._onEsc === `function` && e.keyCode === 27) {
+      this._onEsc();
+    }
+  }
+
+  _onChangePrice(e) {
+    this._price = e.target.value;
+  }
+
+  _onChangeTimeStart() {
+    const INPUT_VLUE = this._element.querySelector(`input[name="date-start"]`).value;
+    this._timeline[0] = new Date(moment(INPUT_VLUE, `h:mm`)).getTime();
+  }
+
+  _onChangeTimeEnd() {
+    const valueInput = this._element.querySelector(`input[name="date-end"]`).value;
+    this._timeline[1] = new Date(moment(valueInput, `h:mm`)).getTime();
+  }
+
+  _makeHtmlButtonOffers() {
+    return this._offers.map((offer) => `
+    <input class="point__offers-input visually-hidden" type="checkbox" id="${offer.title}-${this._id}" name="offer" value="${offer.title}-${offer.price}" ${offer.accepted ? `checked` : ``}>
+    <label for="${offer.title}-${this._id}" class="point__offers-label">
+              <span class="point__offer-service">${offer.title}</span> + €<span class="point__offer-price">${offer.price}</span>
+    </label>`.trim()).join(``);
+  }
+
+  _makeHtmlDestinations() {
+    const options = this._destinations.map((destinations) => `<option value="${destinations.name}"></option>`).join(``);
+    return `<datalist id="destination-select">${options}</datalist>`;
+  }
+
+  _makeHtmlPictures() {
+    return this._pictures.map((picture) =>
+      `<img src="${picture.src}" alt="picture from place" class="point__destination-image">`).join(``);
+  }
+
+  _onSubmitBtnClick(e) {
+    e.preventDefault();
+    const formData = new FormData(this._element.querySelector(`form`));
+    const newData = this._processForm(formData);
+    if (typeof this._onSubmit === `function`) {
+      this._onSubmit(newData);
+    }
+
+    this.update(newData);
+  }
+
+  _processForm(formData) {
+    const entry = {
+      type: this._type,
+      offers: [],
+      timeline: [],
+      price: null,
+      duration: new Date(),
+      city: ``,
+      totalPrice: 0,
+      favorite: false,
+    };
+
+    const pointMapper = Trip.createMapper(entry);
+    for (const pair of formData.entries()) {
+      const [property, value] = pair;
+      if (pointMapper[property]) {
+        pointMapper[property](value);
+      }
+    }
+    return entry;
+  }
+
+  _onDeleteBtnClick() {
+    if (typeof this._onDelete === `function`) {
+      this._onDelete({id: this._id});
+    }
+  }
+
+  _bind() {
+    if (this._element) {
+      this._element.querySelector(`.point__button--save`).addEventListener(`click`, this._onSubmitBtnClick);
+      this._element.querySelector(`button[type="reset"]`).addEventListener(`click`, this._onDeleteBtnClick);
+      this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
+      this._element.querySelector(`input[name="price"]`).addEventListener(`change`, this._onChangePrice);
+      this._element.querySelector(`.point__destination-input`).addEventListener(`change`, this._onChangePointDestination);
+      document.addEventListener(`keydown`, this._onKeydownEsc);
+
+      flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`), {
+        enableTime: true,
+        altInput: true,
+        noCalendar: true,
+        defaultDate: [this._timeline[0]],
+        maxDate: this._timeline[1],
+        [`time_24hr`]: true,
+        altFormat: `h:i`,
+        dateFormat: `h:i`,
+        onClose: this._onChangeTimeStart,
+      });
+
+      flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`), {
+        enableTime: true,
+        altInput: true,
+        [`time_24hr`]: true,
+        noCalendar: true,
+        defaultDate: [this._timeline[1]],
+        minDate: this._timeline[0],
+        altFormat: `h:i`,
+        dateFormat: `h:i`,
+        onClose: this._onChangeTimeEnd,
+      });
+    }
+  }
+
+  _unbind() {
+    if (this._element) {
+      this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
+      this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
+      this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
+      this._element.querySelector(`.point__destination-input`).removeEventListener(`change`, this._onChangePointDestination);
+      document.removeEventListener(`keydown`, this._onKeydownEsc);
+
+      flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`)).destroy();
+      flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`)).destroy();
+      clearTimeout(this._animationTimeoutId);
+    }
+  }
+
+  _onChangeType(e) {
+    if (e.target.tagName.toLowerCase() === `input`) {
+      let value = e.target.value;
+      this._type = {typeName: value, icon: POINTS_TYPE[value]};
+      for (let item of this._offersList) {
+        if (item.type === value) {
+          this._offers = item.offers.map((offer) => {
+            return {
+              title: offer.name,
+              price: offer.price,
+            };
+          });
+        }
+      }
+      this._partialUpdate();
+    }
+  }
+
+  _partialUpdate() {
+    this._unbind();
+    const oldElement = this._element;
+    this._element.parentNode.replaceChild(this.render(), oldElement);
+    oldElement.remove();
+    this._bind();
+  }
+
+  static createMapper(target) {
+    return {
+      offer(value) {
+        const result = value.split(`-`);
+        target.offers.push({
+          title: result[0],
+          price: result[1],
+          accepted: true,
+        });
+      },
+      destination(value) {
+        target.city = value;
+      },
+      price(value) {
+        target.price = value;
+      },
+      [`travel-way`](value) {
+        target.type = {
+          icon: POINTS_TYPE[value],
+          typeName: value,
+        };
+      },
+      [`date-start`](value) {
+        target.timeline[0] = new Date(moment(value, `h:mm`)).getTime();
+      },
+      [`date-end`](value) {
+        target.timeline[1] = new Date(moment(value, `h:mm`)).getTime();
+      },
+      favorite(value) {
+        if (value === `on`) {
+          target.favorite = true;
+        }
+      },
+      /* [`total-price`](value) {
+      } */
+    };
   }
 }
 
