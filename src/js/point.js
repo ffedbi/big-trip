@@ -1,6 +1,8 @@
 import Component from "./component";
 import moment from "moment";
 
+const MAX_NUMBER_OFFERS = 3;
+
 export default class Point extends Component {
   constructor(data) {
     super();
@@ -10,7 +12,6 @@ export default class Point extends Component {
     this._duration = Point._getDurationEvent(this._timeline);
     this._price = data.price;
     this._offers = data.offers;
-    this._maxOffersElement = data._maxOffersElement || 3;
 
     this._onElement = null;
     this._onClickPointElement = this._onClickPointElement.bind(this);
@@ -45,18 +46,8 @@ export default class Point extends Component {
   }
 
   _makeHtmlButtonOffer() {
-    let htmlBtnOffer = ``;
-    if (!this._offers.length) {
-      return htmlBtnOffer;
-    }
-
-    const counter = this._offers.length > this._maxOffersElement ? this._maxOffersElement : this._offers.length;
-    for (let i = 0; i < counter; i++) {
-      if (this._offers[i].accepted) {
-        htmlBtnOffer += `<li><button class="trip-point__offer">${this._offers[i].title} + &euro;&nbsp;${this._offers[i].price}</button></li>`;
-      }
-    }
-    return htmlBtnOffer;
+    return this._offers.filter((offer) => offer.accepted).slice(0, MAX_NUMBER_OFFERS).map((offer) =>
+      `<li><button class="trip-point__offer">${offer.title} + &euro;&nbsp;${offer.price}</button></li>`).join(``);
   }
 
   _onClickPointElement(e) {

@@ -7,6 +7,7 @@ export default class Component {
     }
 
     this._element = null;
+    this._ui = {};
   }
 
   get element() {

@@ -18,7 +18,7 @@ export default class Trip extends Component {
     this._favorite = data.favorite;
 
     this._offersList = offersList;
-    this._destinations = destinations || ``;
+    this._destinations = destinations || [];
 
     this._onSubmit = null;
     this._onDelete = null;
@@ -142,25 +142,25 @@ export default class Trip extends Component {
   }
 
   lockToSaving() {
-    this._element.querySelector(`button[type="reset"]`).disabled = true;
-    this._element.querySelector(`.point__button--save`).disabled = true;
-    this._element.querySelector(`.point__button--save`).textContent = `Saving...`;
+    this._ui.btnReset.disabled = true;
+    this._ui.btnSave.disabled = true;
+    this._ui.btnSave.textContent = `Saving...`;
   }
 
   unlockToSave() {
-    this._element.querySelector(`button[type="reset"]`).disabled = false;
-    this._element.querySelector(`.point__button--save`).disabled = false;
-    this._element.querySelector(`.point__button--save`).textContent = `Save`;
+    this._ui.btnReset.disabled = false;
+    this._ui.btnSave.disabled = false;
+    this._ui.btnSave.textContent = `Save`;
   }
 
   lockToDeleting() {
-    this._element.querySelector(`button[type="reset"]`).disabled = true;
-    this._element.querySelector(`button[type="reset"]`).textContent = `Deleting...`;
+    this._ui.btnReset.disabled = true;
+    this._ui.btnReset.textContent = `Deleting...`;
   }
 
   unlockToDelete() {
-    this._element.querySelector(`button[type="reset"]`).disabled = false;
-    this._element.querySelector(`button[type="reset"]`).textContent = `Delete`;
+    this._ui.btnReset.disabled = false;
+    this._ui.btnReset.textContent = `Delete`;
   }
 
   shake() {
@@ -199,12 +199,12 @@ export default class Trip extends Component {
   }
 
   _onChangeTimeStart() {
-    const INPUT_VLUE = this._element.querySelector(`input[name="date-start"]`).value;
-    this._timeline[0] = new Date(moment(INPUT_VLUE, `h:mm`)).getTime();
+    const inputValue = this._ui.inputTimeStart.value;
+    this._timeline[0] = new Date(moment(inputValue, `h:mm`)).getTime();
   }
 
   _onChangeTimeEnd() {
-    const valueInput = this._element.querySelector(`input[name="date-end"]`).value;
+    const valueInput = this._ui.inputTimeEnd.value;
     this._timeline[1] = new Date(moment(valueInput, `h:mm`)).getTime();
   }
 
@@ -265,16 +265,27 @@ export default class Trip extends Component {
     }
   }
 
+  _getUiElements() {
+    this._ui.btnSave = this._element.querySelector(`.point__button--save`);
+    this._ui.btnReset = this._element.querySelector(`button[type="reset"]`);
+    this._ui.travelWaySelect = this._element.querySelector(`.travel-way__select`);
+    this._ui.inputPrice = this._element.querySelector(`input[name="price"]`);
+    this._ui.inputDestinations = this._element.querySelector(`.point__destination-input`);
+    this._ui.inputTimeStart = this._element.querySelector(`.point__time input[name="date-start"]`);
+    this._ui.inputTimeEnd = this._element.querySelector(`.point__time input[name="date-end"]`);
+  }
+
   _bind() {
     if (this._element) {
-      this._element.querySelector(`.point__button--save`).addEventListener(`click`, this._onSubmitBtnClick);
-      this._element.querySelector(`button[type="reset"]`).addEventListener(`click`, this._onDeleteBtnClick);
-      this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
-      this._element.querySelector(`input[name="price"]`).addEventListener(`change`, this._onChangePrice);
-      this._element.querySelector(`.point__destination-input`).addEventListener(`change`, this._onChangePointDestination);
+      this._getUiElements();
+      this._ui.btnSave.addEventListener(`click`, this._onSubmitBtnClick);
+      this._ui.btnReset.addEventListener(`click`, this._onDeleteBtnClick);
+      this._ui.travelWaySelect.addEventListener(`change`, this._onChangeType);
+      this._ui.inputPrice.addEventListener(`change`, this._onChangePrice);
+      this._ui.inputDestinations.addEventListener(`change`, this._onChangePointDestination);
       document.addEventListener(`keydown`, this._onKeydownEsc);
 
-      flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`), {
+      flatpickr(this._ui.inputTimeStart, {
         enableTime: true,
         altInput: true,
         noCalendar: true,
@@ -285,8 +296,7 @@ export default class Trip extends Component {
         dateFormat: `h:i`,
         onClose: this._onChangeTimeStart,
       });
-
-      flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`), {
+      flatpickr(this._ui.inputTimeEnd, {
         enableTime: true,
         altInput: true,
         [`time_24hr`]: true,
@@ -302,14 +312,15 @@ export default class Trip extends Component {
 
   _unbind() {
     if (this._element) {
-      this._element.querySelector(`.point__button--save`).removeEventListener(`click`, this._onSubmitBtnClick);
-      this._element.querySelector(`button[type="reset"]`).removeEventListener(`click`, this._onDeleteBtnClick);
-      this._element.querySelector(`.travel-way__select`).addEventListener(`change`, this._onChangeType);
-      this._element.querySelector(`.point__destination-input`).removeEventListener(`change`, this._onChangePointDestination);
+      this._ui.btnSave.removeEventListener(`click`, this._onSubmitBtnClick);
+      this._ui.btnReset.removeEventListener(`click`, this._onDeleteBtnClick);
+      this._ui.travelWaySelect.addEventListener(`change`, this._onChangeType);
+      this._ui.inputPrice.removeEventListener(`change`, this._onChangePrice);
+      this._ui.inputDestinations.removeEventListener(`change`, this._onChangePointDestination);
       document.removeEventListener(`keydown`, this._onKeydownEsc);
 
-      flatpickr(this._element.querySelector(`.point__time input[name="date-start"]`)).destroy();
-      flatpickr(this._element.querySelector(`.point__time input[name="date-end"]`)).destroy();
+      flatpickr(this._ui.inputTimeStart).destroy();
+      flatpickr(this._ui.inputTimeEnd).destroy();
       clearTimeout(this._animationTimeoutId);
     }
   }
