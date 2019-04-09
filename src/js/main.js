@@ -29,16 +29,18 @@ const POINT_STORE_KEY = `points-store-key`;
 const api = new API();
 const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
 const provider = new Provider({api, store, generateId: getId});
+
 let eventsData = null;
 let eventsDestination = null;
 let eventsOffers = null;
+
 DAYS_BLOCK.textContent = Messages.loading;
 
 const createObjEvents = (arrPoints) => {
   let result = {};
 
   for (let point of arrPoints) {
-    let day = moment(point.timeline[0]).format(`D MMM YY`);
+    const day = moment(point.timeline[0]).format(`D MMM YY`);
     if (!result[day]) {
       result[day] = [];
     }
@@ -54,13 +56,12 @@ const renderDays = (arr) => {
   let data = createObjEvents(arr);
   for (let key in data) {
     if (data.hasOwnProperty(key)) {
-      let day = new TravelDay(key).render();
+      const day = new TravelDay(key).render();
       DAYS_BLOCK.appendChild(day);
       const distEvents = day.querySelector(`.trip-day__items`);
       renderPoints(data[key], distEvents);
     }
   }
-
 };
 
 BUTTON_NEW_EVENT.addEventListener(`click`, () => {
@@ -141,6 +142,8 @@ const renderPoints = (data, dist) => {
           trip.unlockToSave();
           trip.destroy();
         });
+
+      getTotalPrice(eventsData);
     };
 
     trip.onDelete = ({id}) => {
@@ -158,6 +161,7 @@ const renderPoints = (data, dist) => {
         });
 
       deletePoint(eventsData, item);
+      getTotalPrice(eventsData);
     };
 
     trip.onKeydownEsc = () => {
@@ -255,3 +259,5 @@ document.addEventListener(`DOMContentLoaded`, () => {
       eventsOffers = offersData;
     });
 });
+
+

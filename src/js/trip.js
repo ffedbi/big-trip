@@ -175,10 +175,10 @@ export default class Trip extends Component {
   }
 
   _onChangePointDestination(e) {
-    const VALUE = e.target.value;
+    const value = e.target.value;
 
     for (let item of this._destinations) {
-      if (item.name === VALUE) {
+      if (item.name === value) {
         this._city = item.name;
         this._description = item.description;
         this._pictures = item.pictures;
@@ -204,8 +204,8 @@ export default class Trip extends Component {
   }
 
   _onChangeTimeEnd() {
-    const valueInput = this._ui.inputTimeEnd.value;
-    this._timeline[1] = new Date(moment(valueInput, `h:mm`)).getTime();
+    const inputValue = this._ui.inputTimeEnd.value;
+    this._timeline[1] = new Date(moment(inputValue, `h:mm`)).getTime();
   }
 
   _makeHtmlButtonOffers() {
@@ -273,6 +273,8 @@ export default class Trip extends Component {
     this._ui.inputDestinations = this._element.querySelector(`.point__destination-input`);
     this._ui.inputTimeStart = this._element.querySelector(`.point__time input[name="date-start"]`);
     this._ui.inputTimeEnd = this._element.querySelector(`.point__time input[name="date-end"]`);
+
+    this._ui.offersBlock = this._element.querySelector(`.point__offers-wrap`);
   }
 
   _bind() {
