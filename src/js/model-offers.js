@@ -4,11 +4,11 @@ export default class ModelOffers {
     this.offers = data[`offers`] || [];
   }
 
-  static parseOffer(data) {
+  static parseItem(data) {
     return new ModelOffers(data);
   }
 
-  static parseOffers(data) {
-    return data.map(ModelOffers.parseOffer);
+  static parseItems(data) {
+    return data.map(ModelOffers.parseItem);
   }
 }

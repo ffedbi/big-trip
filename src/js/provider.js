@@ -22,7 +22,7 @@ export default class Provider {
     } else {
       const RAW_POINTS_MAP = this._store.getAll();
       const RAW_POINTS = objectToArray(RAW_POINTS_MAP);
-      const POINTS = ModelPoint.parsePoints(RAW_POINTS);
+      const POINTS = ModelPoint.parseItems(RAW_POINTS);
       return Promise.resolve(POINTS);
     }
   }
@@ -48,7 +48,7 @@ export default class Provider {
       point.id = this._generateId();
       this._needSync = true;
       this._store.setItem({key: point.id, item: point});
-      return Promise.resolve(ModelPoint.parsePoint(point));
+      return Promise.resolve(ModelPoint.parseItem(point));
     }
   }
 
@@ -63,7 +63,7 @@ export default class Provider {
       const POINT = data;
       this._needSync = true;
       this._store.setItem({key: POINT.id, item: POINT});
-      return Promise.resolve(ModelPoint.parsePoint(POINT));
+      return Promise.resolve(ModelPoint.parseItem(POINT));
     }
   }
 
