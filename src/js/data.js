@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 export const DATA_FILTERS = [
   {
     description: `Everything`,
@@ -46,7 +48,7 @@ export const POINT_DEFAULT_DATA = {
   city: ``,
   destination: [],
   price: 0,
-  timeline: [new Date(), new Date()],
+  timeline: [moment().valueOf(), moment().valueOf()],
   pictures: [],
   offers: [],
   description: ``,

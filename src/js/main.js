@@ -9,6 +9,7 @@ import Provider from "./provider";
 import Store from "./store";
 import moment from 'moment';
 import TravelDay from './travel-day';
+import ModelPoint from "./model-point";
 
 const DAYS_BLOCK = document.querySelector(`.trip-points`);
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
@@ -53,7 +54,7 @@ const createObjEvents = (arrPoints) => {
 /* fix for..in */
 const renderDays = (arr) => {
   clearSection(DAYS_BLOCK);
-  let data = createObjEvents(arr);
+  const data = createObjEvents(arr);
   for (let key in data) {
     if (data.hasOwnProperty(key)) {
       const day = new TravelDay(key).render();
@@ -70,8 +71,16 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
   DAYS_BLOCK.insertBefore(newPointEdit.element, DAYS_BLOCK.firstChild);
 
   newPointEdit.onSubmit = (newData) => {
-    window.console.log(newData);
-    provider.createPoint({point: newData});
+    provider.createPoint({point: newData.toRAW()})
+      .then((data) => {
+        eventsData.push(new ModelPoint(data));
+        getTotalPrice(eventsData);
+        renderDays(eventsData);
+      });
+  };
+
+  newPointEdit.onKeydownEsc = () => {
+    newPointEdit.destroy();
   };
 });
 
@@ -207,6 +216,8 @@ const onBtnStatisticClick = (e) => {
     BUTTON_TABLE.classList.remove(ACTIVE_BUTTON_CLASS);
     e.target.classList.add(ACTIVE_BUTTON_CLASS);
     SECTION_MAIN.classList.add(`visually-hidden`);
+    SORTING_SECTION.classList.add(`visually-hidden`);
+    FILTERS_SECTION.classList.add(`visually-hidden`);
     SECTION_STATISTIC.classList.remove(`visually-hidden`);
     initStat(eventsData);
   }
@@ -219,6 +230,8 @@ const onBtnTableClick = (e) => {
     e.target.classList.add(ACTIVE_BUTTON_CLASS);
     SECTION_MAIN.classList.add(`visually-hidden`);
     SECTION_STATISTIC.classList.remove(`visually-hidden`);
+    FILTERS_SECTION.classList.remove(`visually-hidden`);
+    SORTING_SECTION.classList.remove(`visually-hidden`);
     SECTION_MAIN.classList.remove(`visually-hidden`);
     SECTION_STATISTIC.classList.add(`visually-hidden`);
   }

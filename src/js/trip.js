@@ -33,6 +33,7 @@ export default class Trip extends Component {
     this._onChangeTimeEnd = this._onChangeTimeEnd.bind(this);
     this._onChangePrice = this._onChangePrice.bind(this);
     this._onChangePointDestination = this._onChangePointDestination.bind(this);
+    this._onChangeFavoriteState = this._onChangeFavoriteState.bind(this);
   }
 
   get template() {
@@ -139,6 +140,7 @@ export default class Trip extends Component {
     this._timeline = data.timeline;
     this._price = data.price;
     this._offers = data.offers;
+    this._favorite = data.favorite;
   }
 
   lockToSaving() {
@@ -275,6 +277,11 @@ export default class Trip extends Component {
     this._ui.inputTimeEnd = this._element.querySelector(`.point__time input[name="date-end"]`);
 
     this._ui.offersBlock = this._element.querySelector(`.point__offers-wrap`);
+    this._ui.pointFavorite = this._element.querySelector(`.point__favorite`);
+  }
+
+  _onChangeFavoriteState() {
+    this._favorite = !this._favorite;
   }
 
   _bind() {
@@ -285,15 +292,15 @@ export default class Trip extends Component {
       this._ui.travelWaySelect.addEventListener(`change`, this._onChangeType);
       this._ui.inputPrice.addEventListener(`change`, this._onChangePrice);
       this._ui.inputDestinations.addEventListener(`change`, this._onChangePointDestination);
+      this._ui.pointFavorite.addEventListener(`click`, this._onChangeFavoriteState);
       document.addEventListener(`keydown`, this._onKeydownEsc);
 
       flatpickr(this._ui.inputTimeStart, {
         enableTime: true,
         altInput: true,
         noCalendar: true,
-        defaultDate: [this._timeline[0]],
-        maxDate: this._timeline[1],
-        [`time_24hr`]: true,
+        defaultDate: this._timeline[0],
+        format: `h:i`,
         altFormat: `h:i`,
         dateFormat: `h:i`,
         onClose: this._onChangeTimeStart,
@@ -301,10 +308,8 @@ export default class Trip extends Component {
       flatpickr(this._ui.inputTimeEnd, {
         enableTime: true,
         altInput: true,
-        [`time_24hr`]: true,
         noCalendar: true,
-        defaultDate: [this._timeline[1]],
-        minDate: this._timeline[0],
+        defaultDate: this._timeline[1],
         altFormat: `h:i`,
         dateFormat: `h:i`,
         onClose: this._onChangeTimeEnd,
@@ -316,9 +321,10 @@ export default class Trip extends Component {
     if (this._element) {
       this._ui.btnSave.removeEventListener(`click`, this._onSubmitBtnClick);
       this._ui.btnReset.removeEventListener(`click`, this._onDeleteBtnClick);
-      this._ui.travelWaySelect.addEventListener(`change`, this._onChangeType);
+      this._ui.travelWaySelect.removeEventListener(`change`, this._onChangeType);
       this._ui.inputPrice.removeEventListener(`change`, this._onChangePrice);
       this._ui.inputDestinations.removeEventListener(`change`, this._onChangePointDestination);
+      this._ui.pointFavorite.removeEventListener(`click`, this._onChangeFavoriteState);
       document.removeEventListener(`keydown`, this._onKeydownEsc);
 
       flatpickr(this._ui.inputTimeStart).destroy();
@@ -386,8 +392,6 @@ export default class Trip extends Component {
           target.favorite = true;
         }
       },
-      /* [`total-price`](value) {
-      } */
     };
   }
 }
