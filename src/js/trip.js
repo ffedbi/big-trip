@@ -81,8 +81,8 @@ export default class Trip extends Component {
 
         <label class="point__time">
           choose time
-          <input class="point__input" type="text" value="${this._timeline[0]}" name="date-start" placeholder="${this._timeline[0]}">
-          <input class="point__input" type="text" value="${this._timeline[1]}" name="date-end" placeholder="${this._timeline[1]}">
+          <input class="point__input" type="text" value="" name="date-start" placeholder="">
+          <input class="point__input" type="text" value="" name="date-end" placeholder="">
         </label>
 
         <label class="point__price">
@@ -300,10 +300,9 @@ export default class Trip extends Component {
         altInput: true,
         noCalendar: true,
         defaultDate: this._timeline[0],
-        format: `h:i`,
         altFormat: `h:i`,
         dateFormat: `h:i`,
-        onClose: this._onChangeTimeStart,
+        onChange: this._onChangeTimeStart,
       });
       flatpickr(this._ui.inputTimeEnd, {
         enableTime: true,
@@ -311,8 +310,8 @@ export default class Trip extends Component {
         noCalendar: true,
         defaultDate: this._timeline[1],
         altFormat: `h:i`,
-        dateFormat: `h:i`,
-        onClose: this._onChangeTimeEnd,
+        dateFormat: `d h:i`,
+        onChange: this._onChangeTimeEnd,
       });
     }
   }

@@ -7,15 +7,18 @@ const MONEY_CANVAS = document.querySelector(`.statistic__money`);
 const TRANSPORT_CANVAS = document.querySelector(`.statistic__transport`);
 const TIME_CANVAS = document.querySelector(`.statistic__time-spend`);
 const BAR_HEIGHT = 55;
+const timeOptions = {
+  dayLengthInHours: 24,
+  roundingStep: 30
+};
 
 let moneyChart = null;
 let transportChart = null;
 let timeChart = null;
 
 const getDurationEvents = (arr) => {
-  const timeStart = arr[0];
-  const timeEnd = arr[1];
-  return timeEnd - timeStart;
+  const duration = moment.duration(moment(arr[1]).diff(moment(arr[0])));
+  return duration.days() * timeOptions.dayLengthInHours + duration.hours() + (duration.minutes() > timeOptions.roundingStep ? 1 : 0);
 };
 
 const getTypeEvent = (data) => {
@@ -69,7 +72,7 @@ const getTotalDurationEvents = (data) => {
 
   return {
     labels: Object.keys(result),
-    values: Object.values(result).map((item) => moment.utc(item).format(`h`)),
+    values: Object.values(result),
     title: `TIME SPENT`,
     formatter: (val) => `${val}H`,
   };

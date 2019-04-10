@@ -1,8 +1,8 @@
 const CACHE_NAME = `BIG_TRIP_V1.0`;
 
-const putToSWCache = (evt, response) => {
-  caches.open(CACHE_NAME)
-    .then((cache) => cache.put(evt.request, response));
+const putToSWCache = () => {
+  caches.open(CACHE_NAME);
+  // .then((cache) => cache.put(evt.request, response));
 };
 
 self.addEventListener(`install`, (evt) => {
@@ -23,22 +23,20 @@ self.addEventListener(`install`, (evt) => {
 });
 
 self.addEventListener(`fetch`, (evt) => {
-  evt.respondWith(
-    fetch(evt.request)
-      .then((response) => {
-        putToSWCache(evt, response.clone());
+  evt.respondWith(fetch(evt.request)
+    .then((response) => {
+      putToSWCache(evt, response.clone());
 
-        return response.clone();
-      })
-      .catch(() => {
-        return caches.match(evt.request)
-          .then((response) => {
-            return response;
-          })
-          .catch((err) => {
-            throw err;
-          });
-      }),
-  );
+      return response.clone();
+    })
+    .catch(() => {
+      return caches.match(evt.request)
+        .then((response) => {
+          return response;
+        })
+        .catch((err) => {
+          throw err;
+        });
+    }));
 });
 
