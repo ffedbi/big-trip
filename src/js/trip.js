@@ -244,9 +244,9 @@ export default class Trip extends Component {
     const entry = {
       type: this._type,
       offers: this._offers,
-      timeline: [],
+      timeline: this._timeline,
+      // timeline: [],
       price: null,
-      duration: new Date(),
       city: ``,
       totalPrice: 0,
       favorite: false,
@@ -292,7 +292,7 @@ export default class Trip extends Component {
       if (e.target.checked) {
         for (let offer of this._offers) {
           if (offerPrice === offer.price && offerTitle === offer.title) {
-            this._price += offerPrice;
+            this._price += +offerPrice;
             offer.accepted = true;
             break;
           }
@@ -402,12 +402,13 @@ export default class Trip extends Component {
           typeName: value,
         };
       },
-      [`date-start`](value) {
-        target.timeline[0] = new Date(moment(value, `h:mm`)).getTime();
-      },
-      [`date-end`](value) {
-        target.timeline[1] = new Date(moment(value, `h:mm`)).getTime();
-      },
+      // [`date-start`]() {
+      //   console.log(value)
+      //   target.timeline[0] = this._timline;
+      // },
+      // [`date-end`](value) {
+      //   target.timeline[1] = new Date(moment(value, `h:mm`)).getTime();
+      // },
       favorite(value) {
         if (value === `on`) {
           target.favorite = true;

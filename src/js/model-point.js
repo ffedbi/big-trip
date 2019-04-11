@@ -2,7 +2,7 @@ import {POINTS_TYPE} from "./data";
 
 export default class ModelPoint {
   constructor(data) {
-    this.id = data[`id`] || ``;
+    this.id = data[`id`];
     this.type = {
       typeName: data[`type`] || `taxi`,
       icon: POINTS_TYPE[data[`type`]] || POINTS_TYPE[data[`taxi`]],

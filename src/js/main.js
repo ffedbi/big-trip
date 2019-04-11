@@ -1,4 +1,4 @@
-import {clearSection, getId} from './utils';
+import {clearSection, converNewPointData, getId, deleteArrayElement} from './utils';
 import {DATA_FILTERS, DATA_SORTING_FILTERS, POINT_DEFAULT_DATA} from './data';
 import {initStat} from "./statictic";
 import Point from "./point";
@@ -24,7 +24,7 @@ const Messages = {
   loading: `Loading route...`,
   error: `Something went wrong while loading your route info. Check your connection or try again later`,
 };
-
+DAYS_BLOCK.textContent = Messages.loading;
 const POINT_STORE_KEY = `points-store-key`;
 const api = new API();
 const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
@@ -33,8 +33,6 @@ const provider = new Provider({api, store, generateId: getId});
 let eventsData = null;
 let eventsDestination = null;
 let eventsOffers = null;
-
-DAYS_BLOCK.textContent = Messages.loading;
 
 const createObjEvents = (arrPoints) => {
   let result = {};
@@ -64,22 +62,6 @@ const renderDays = (arr) => {
   }
 };
 
-const toData = (data) => {
-  return {
-    'type': data.type.typeName,
-    'base_price': data.price,
-    'destination': {
-      'name': data.city,
-      'description': data.description,
-      'pictures': data.pictures,
-    },
-    'date_from': data.timeline[0],
-    'date_to': data.timeline[1],
-    'offers': data.offers,
-    'is_favorite': data.favorite,
-  };
-};
-
 BUTTON_NEW_EVENT.addEventListener(`click`, () => {
   BUTTON_NEW_EVENT.disabled = true;
   let newPointEdit = new Trip(POINT_DEFAULT_DATA, eventsOffers, eventsDestination);
@@ -87,7 +69,7 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
 
   newPointEdit.onSubmit = (newData) => {
     newPointEdit.lockToSaving();
-    provider.createPoint({point: toData(newData)})
+    provider.createPoint({point: converNewPointData(newData)})
       .then((newPoint) => {
         newPointEdit.unlockToSave();
         eventsData.push(newPoint);
@@ -143,11 +125,6 @@ const renderFilters = (data, section, type) => {
   }
 };
 
-const deletePoint = (trip, id) => {
-  eventsData.splice(id, 1);
-  return trip;
-};
-
 const renderPoints = (data, dist) => {
   clearSection(dist);
   for (let i = 0; i < data.length; i++) {
@@ -195,16 +172,16 @@ const renderPoints = (data, dist) => {
       provider.deletePoint({id})
         .then(() => provider.getPoints())
         .then(renderDays)
-        .catch(() => {
-          trip.shake();
-          trip.element.style.border = `1px solid #ff0000`;
-        })
         .then(() => {
           trip.unlockToDelete();
           trip.destroy();
+        })
+        .catch(() => {
+          trip.shake();
+          trip.element.style.border = `1px solid #ff0000`;
         });
 
-      deletePoint(eventsData, item);
+      deleteArrayElement(eventsData, item);
       getTotalPrice(eventsData);
     };
 
@@ -287,7 +264,6 @@ renderFilters(DATA_FILTERS, FILTERS_SECTION);
 renderFilters(DATA_SORTING_FILTERS, SORTING_SECTION, `sorting`);
 BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
 BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);
-
 document.addEventListener(`DOMContentLoaded`, () => {
   Promise.all([provider.getPoints(), provider.getDestinations(), provider.getOffers()])
     .then(([points, destinations, offers]) => {

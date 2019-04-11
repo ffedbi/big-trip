@@ -22,6 +22,8 @@ export default class Provider {
     } else {
       const rawPointsMap = this._store.getAll();
       const rawPoints = objectToArray(rawPointsMap);
+      /* offline delete-event error */
+      console.log(rawPoints);
       const points = ModelPoint.parseItems(rawPoints);
       return Promise.resolve(points);
     }
