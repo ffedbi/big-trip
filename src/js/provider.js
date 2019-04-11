@@ -40,16 +40,16 @@ export default class Provider {
   createPoint({point}) {
     if (Provider._isOnline()) {
       return this._api.createPoint({point})
-        .then(() => {
-          this._store.setItem({key: point.id, item: point.toRAW()});
-          return point;
+        .then((response) => {
+          this._store.setItem({key: response.id, item: response});
+
+          return response;
         });
-    } else {
-      point.id = this._generateId();
-      this._needSync = true;
-      this._store.setItem({key: point.id, item: point});
-      return Promise.resolve(ModelPoint.parseItem(point));
     }
+    point.id = this._generateId();
+    this._needSync = true;
+    this._store.setItem({key: point.id, item: point});
+    return Promise.resolve(ModelPoint.parseItem(point));
   }
 
   updatePoint({id, data}) {

@@ -2,7 +2,6 @@ const CACHE_NAME = `BIG_TRIP_V1.0`;
 
 const putToSWCache = () => {
   caches.open(CACHE_NAME);
-  // .then((cache) => cache.put(evt.request, response));
 };
 
 self.addEventListener(`install`, (evt) => {

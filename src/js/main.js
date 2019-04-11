@@ -9,7 +9,6 @@ import Provider from "./provider";
 import Store from "./store";
 import moment from 'moment';
 import TravelDay from './travel-day';
-import ModelPoint from "./model-point";
 
 const DAYS_BLOCK = document.querySelector(`.trip-points`);
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
@@ -19,7 +18,7 @@ const SECTION_MAIN = document.querySelector(`.main`);
 const SECTION_STATISTIC = document.querySelector(`.statistic`);
 const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`);
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
-const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
+const TOTAL_PRICE_SPAN = document.querySelector(`.trip__total-cost`);
 const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
 const Messages = {
   loading: `Loading route...`,
@@ -65,22 +64,58 @@ const renderDays = (arr) => {
   }
 };
 
+const toData = (data) => {
+  return {
+    'type': data.type.typeName,
+    'base_price': data.price,
+    'destination': {
+      'name': data.city,
+      'description': data.description,
+      'pictures': data.pictures,
+    },
+    'date_from': data.timeline[0],
+    'date_to': data.timeline[1],
+    'offers': data.offers,
+    'is_favorite': data.favorite,
+  };
+};
+
 BUTTON_NEW_EVENT.addEventListener(`click`, () => {
+  BUTTON_NEW_EVENT.disabled = true;
   let newPointEdit = new Trip(POINT_DEFAULT_DATA, eventsOffers, eventsDestination);
-  newPointEdit.render();
-  DAYS_BLOCK.insertBefore(newPointEdit.element, DAYS_BLOCK.firstChild);
+  DAYS_BLOCK.insertBefore(newPointEdit.render(), DAYS_BLOCK.firstChild);
 
   newPointEdit.onSubmit = (newData) => {
-    provider.createPoint({point: newData.toRAW()})
-      .then((data) => {
-        eventsData.push(new ModelPoint(data));
+    newPointEdit.lockToSaving();
+    provider.createPoint({point: toData(newData)})
+      .then((newPoint) => {
+        newPointEdit.unlockToSave();
+        eventsData.push(newPoint);
         getTotalPrice(eventsData);
         renderDays(eventsData);
+      })
+      .catch(() => {
+        newPointEdit.shake();
+        newPointEdit.element.style.border = `1px solid #ff0000`;
+      })
+      .then(() => {
+        newPointEdit.element.style.border = ``;
+        BUTTON_NEW_EVENT.disabled = false;
       });
   };
 
-  newPointEdit.onKeydownEsc = () => {
+  newPointEdit.onDelete = () => {
+    newPointEdit.lockToDeleting();
     newPointEdit.destroy();
+    renderDays(eventsData);
+    BUTTON_NEW_EVENT.disabled = false;
+  };
+
+  newPointEdit.onKeydownEsc = () => {
+    newPointEdit.lockToDeleting();
+    newPointEdit.destroy();
+    renderDays(eventsData);
+    BUTTON_NEW_EVENT.disabled = false;
   };
 });
 
@@ -90,7 +125,7 @@ const getTotalPrice = (arrEvents) => {
     acc += +item[`price`];
   }
 
-  TOTAL_PRICE_EL.textContent = `€ ${acc}`;
+  TOTAL_PRICE_SPAN.textContent = `€ ${acc}`;
 };
 
 const renderFilters = (data, section, type) => {
@@ -219,6 +254,7 @@ const onBtnStatisticClick = (e) => {
     SORTING_SECTION.classList.add(`visually-hidden`);
     FILTERS_SECTION.classList.add(`visually-hidden`);
     SECTION_STATISTIC.classList.remove(`visually-hidden`);
+    BUTTON_NEW_EVENT.disabled = true;
     initStat(eventsData);
   }
 };
@@ -234,6 +270,7 @@ const onBtnTableClick = (e) => {
     SORTING_SECTION.classList.remove(`visually-hidden`);
     SECTION_MAIN.classList.remove(`visually-hidden`);
     SECTION_STATISTIC.classList.add(`visually-hidden`);
+    BUTTON_NEW_EVENT.disabled = false;
   }
 };
 
@@ -252,25 +289,15 @@ BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
 BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);
 
 document.addEventListener(`DOMContentLoaded`, () => {
-  provider.getPoints()
-    .then((points) => {
+  Promise.all([provider.getPoints(), provider.getDestinations(), provider.getOffers()])
+    .then(([points, destinations, offers]) => {
       eventsData = points;
+      eventsDestination = destinations;
+      eventsOffers = offers;
       getTotalPrice(eventsData);
       renderDays(eventsData);
     })
     .catch(() => {
       DAYS_BLOCK.textContent = Messages.error;
     });
-
-  provider.getDestinations()
-    .then((data) => {
-      eventsDestination = data;
-    });
-
-  provider.getOffers()
-    .then((offersData) => {
-      eventsOffers = offersData;
-    });
 });
-
-

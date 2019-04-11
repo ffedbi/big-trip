@@ -34,6 +34,7 @@ export default class Trip extends Component {
     this._onChangePrice = this._onChangePrice.bind(this);
     this._onChangePointDestination = this._onChangePointDestination.bind(this);
     this._onChangeFavoriteState = this._onChangeFavoriteState.bind(this);
+    this._onChangeOffers = this._onChangeOffers.bind(this);
   }
 
   get template() {
@@ -212,8 +213,8 @@ export default class Trip extends Component {
 
   _makeHtmlButtonOffers() {
     return this._offers.map((offer) => `
-    <input class="point__offers-input visually-hidden" type="checkbox" id="${offer.title}-${this._id}" name="offer" value="${offer.title}-${offer.price}" ${offer.accepted ? `checked` : ``}>
-    <label for="${offer.title}-${this._id}" class="point__offers-label">
+    <input class="point__offers-input visually-hidden" type="checkbox" id="${offer.title}--${this._id}" name="offer" value="${offer.title}--${offer.price}" ${offer.accepted ? `checked` : ``}>
+    <label for="${offer.title}--${this._id}" class="point__offers-label">
               <span class="point__offer-service">${offer.title}</span> + €<span class="point__offer-price">${offer.price}</span>
     </label>`.trim()).join(``);
   }
@@ -242,7 +243,7 @@ export default class Trip extends Component {
   _processForm(formData) {
     const entry = {
       type: this._type,
-      offers: [],
+      offers: this._offers,
       timeline: [],
       price: null,
       duration: new Date(),
@@ -275,13 +276,39 @@ export default class Trip extends Component {
     this._ui.inputDestinations = this._element.querySelector(`.point__destination-input`);
     this._ui.inputTimeStart = this._element.querySelector(`.point__time input[name="date-start"]`);
     this._ui.inputTimeEnd = this._element.querySelector(`.point__time input[name="date-end"]`);
-
     this._ui.offersBlock = this._element.querySelector(`.point__offers-wrap`);
     this._ui.pointFavorite = this._element.querySelector(`.point__favorite`);
   }
 
   _onChangeFavoriteState() {
     this._favorite = !this._favorite;
+  }
+
+  _onChangeOffers(e) {
+    if (e.target.tagName.toLowerCase() === `input`) {
+      const offerTitle = e.target.value.split(`--`)[0];
+      const offerPrice = +e.target.value.split(`--`)[1];
+
+      if (e.target.checked) {
+        for (let offer of this._offers) {
+          if (offerPrice === offer.price && offerTitle === offer.title) {
+            this._price += offerPrice;
+            offer.accepted = true;
+            break;
+          }
+        }
+        this._partialUpdate();
+      } else {
+        for (let offer of this._offers) {
+          if (offerPrice === offer.price && offerTitle === offer.title) {
+            this._price -= offerPrice;
+            offer.accepted = false;
+            break;
+          }
+        }
+        this._partialUpdate();
+      }
+    }
   }
 
   _bind() {
@@ -293,6 +320,7 @@ export default class Trip extends Component {
       this._ui.inputPrice.addEventListener(`change`, this._onChangePrice);
       this._ui.inputDestinations.addEventListener(`change`, this._onChangePointDestination);
       this._ui.pointFavorite.addEventListener(`click`, this._onChangeFavoriteState);
+      this._ui.offersBlock.addEventListener(`click`, this._onChangeOffers);
       document.addEventListener(`keydown`, this._onKeydownEsc);
 
       flatpickr(this._ui.inputTimeStart, {
@@ -323,6 +351,7 @@ export default class Trip extends Component {
       this._ui.travelWaySelect.removeEventListener(`change`, this._onChangeType);
       this._ui.inputPrice.removeEventListener(`change`, this._onChangePrice);
       this._ui.inputDestinations.removeEventListener(`change`, this._onChangePointDestination);
+      this._ui.offersBlock.removeEventListener(`click`, this._onChangeOffers);
       this._ui.pointFavorite.removeEventListener(`click`, this._onChangeFavoriteState);
       document.removeEventListener(`keydown`, this._onKeydownEsc);
 
@@ -335,6 +364,7 @@ export default class Trip extends Component {
   _onChangeType(e) {
     if (e.target.tagName.toLowerCase() === `input`) {
       let value = e.target.value;
+      this._price = 0;
       this._type = {typeName: value, icon: POINTS_TYPE[value]};
       for (let item of this._offersList) {
         if (item.type === value) {
@@ -360,14 +390,6 @@ export default class Trip extends Component {
 
   static createMapper(target) {
     return {
-      offer(value) {
-        const result = value.split(`-`);
-        target.offers.push({
-          title: result[0],
-          price: result[1],
-          accepted: true,
-        });
-      },
       destination(value) {
         target.city = value;
       },
