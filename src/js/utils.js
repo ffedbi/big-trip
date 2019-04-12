@@ -1,9 +1,9 @@
 export const clearSection = (section) => {
   section.innerHTML = ``;
 };
+
 export const createDOMElementFromHtml = (template) => {
-  const newElement = document.createElement(`div`);
-  newElement.innerHTML = template;
+  const newElement = document.createRange().createContextualFragment(template);
   return newElement.firstChild;
 };
 

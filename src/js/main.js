@@ -30,14 +30,13 @@ const api = new API();
 const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
 const provider = new Provider({api, store, generateId: getId});
 
-let eventsData = null;
+let points = null;
 let eventsDestination = null;
 let eventsOffers = null;
 
-const createObjEvents = (arrPoints) => {
+const getSortedPointByDay = (events) => {
   let result = {};
-
-  for (let point of arrPoints) {
+  for (let point of events) {
     const day = moment(point.timeline[0]).format(`D MMM YY`);
     if (!result[day]) {
       result[day] = [];
@@ -48,18 +47,16 @@ const createObjEvents = (arrPoints) => {
   return result;
 };
 
-/* fix for..in */
-const renderDays = (arr) => {
+const renderDays = (events) => {
   clearSection(DAYS_BLOCK);
-  const data = createObjEvents(arr);
-  for (let key in data) {
-    if (data.hasOwnProperty(key)) {
-      const day = new TravelDay(key).render();
-      DAYS_BLOCK.appendChild(day);
-      const distEvents = day.querySelector(`.trip-day__items`);
-      renderPoints(data[key], distEvents);
-    }
-  }
+  const pointSortedDay = getSortedPointByDay(events);
+  Object.entries(pointSortedDay).forEach((item) => {
+    const [day, eventList] = item;
+    const dayData = new TravelDay(day).render();
+    DAYS_BLOCK.appendChild(dayData);
+    const distEvents = dayData.querySelector(`.trip-day__items`);
+    renderPoints(eventList, distEvents);
+  });
 };
 
 BUTTON_NEW_EVENT.addEventListener(`click`, () => {
@@ -72,9 +69,9 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
     provider.createPoint({point: converNewPointData(newData)})
       .then((newPoint) => {
         newPointEdit.unlockToSave();
-        eventsData.push(newPoint);
-        getTotalPrice(eventsData);
-        renderDays(eventsData);
+        points.push(newPoint);
+        getTotalPrice(points);
+        renderDays(points);
       })
       .catch(() => {
         newPointEdit.shake();
@@ -89,14 +86,14 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
   newPointEdit.onDelete = () => {
     newPointEdit.lockToDeleting();
     newPointEdit.destroy();
-    renderDays(eventsData);
+    renderDays(points);
     BUTTON_NEW_EVENT.disabled = false;
   };
 
   newPointEdit.onKeydownEsc = () => {
     newPointEdit.lockToDeleting();
     newPointEdit.destroy();
-    renderDays(eventsData);
+    renderDays(points);
     BUTTON_NEW_EVENT.disabled = false;
   };
 });
@@ -116,7 +113,7 @@ const renderFilters = (data, section, type) => {
 
     filter.onFilter = () => {
       clearSection(DAYS_BLOCK);
-      let newPointData = filterPoint(eventsData, filter.name);
+      let newPointData = filterPoint(points, filter.name);
       renderDays(newPointData);
     };
 
@@ -164,7 +161,7 @@ const renderPoints = (data, dist) => {
           trip.destroy();
         });
 
-      getTotalPrice(eventsData);
+      getTotalPrice(points);
     };
 
     trip.onDelete = ({id}) => {
@@ -179,10 +176,14 @@ const renderPoints = (data, dist) => {
         .catch(() => {
           trip.shake();
           trip.element.style.border = `1px solid #ff0000`;
+        })
+        .then(() => {
+          trip.unlockToDelete();
+          trip.destroy();
         });
 
-      deleteArrayElement(eventsData, item);
-      getTotalPrice(eventsData);
+      deleteArrayElement(points, item);
+      getTotalPrice(points);
     };
 
     trip.onKeydownEsc = () => {
@@ -196,28 +197,28 @@ const renderPoints = (data, dist) => {
   }
 };
 
-const filterPoint = (points, filterName) => {
+const filterPoint = (events, filterName) => {
   let result;
   const name = filterName.toLowerCase();
   switch (name) {
     case `everything`:
     case `offers`:
-      result = points;
+      result = events;
       break;
     case `future`:
-      result = points.filter((item) => new Date() < new Date(item.timeline[0]));
+      result = events.filter((item) => new Date() < new Date(item.timeline[0]));
       break;
     case `past`:
-      result = points.filter((item) => new Date() > new Date(item.timeline[0]));
+      result = events.filter((item) => new Date() > new Date(item.timeline[0]));
       break;
     case `price`:
-      result = points.sort((a, b) => b.price - a.price);
+      result = events.sort((a, b) => b.price - a.price);
       break;
     case `time`:
-      result = points.sort((a, b) => b.timeline[0] - a.timeline[0]);
+      result = events.sort((a, b) => b.timeline[0] - a.timeline[0]);
       break;
     default:
-      result = points;
+      result = events;
   }
   return result;
 };
@@ -232,7 +233,7 @@ const onBtnStatisticClick = (e) => {
     FILTERS_SECTION.classList.add(`visually-hidden`);
     SECTION_STATISTIC.classList.remove(`visually-hidden`);
     BUTTON_NEW_EVENT.disabled = true;
-    initStat(eventsData);
+    initStat(points);
   }
 };
 
@@ -260,20 +261,21 @@ window.addEventListener(`online`, () => {
   provider.syncPoints();
 });
 
-renderFilters(DATA_FILTERS, FILTERS_SECTION);
-renderFilters(DATA_SORTING_FILTERS, SORTING_SECTION, `sorting`);
-BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
-BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);
 document.addEventListener(`DOMContentLoaded`, () => {
   Promise.all([provider.getPoints(), provider.getDestinations(), provider.getOffers()])
-    .then(([points, destinations, offers]) => {
-      eventsData = points;
+    .then(([pointsData, destinations, offers]) => {
+      points = pointsData;
       eventsDestination = destinations;
       eventsOffers = offers;
-      getTotalPrice(eventsData);
-      renderDays(eventsData);
+      getTotalPrice(points);
+      renderDays(points);
     })
     .catch(() => {
       DAYS_BLOCK.textContent = Messages.error;
     });
 });
+
+renderFilters(DATA_FILTERS, FILTERS_SECTION);
+renderFilters(DATA_SORTING_FILTERS, SORTING_SECTION, `sorting`);
+BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
+BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);

@@ -245,10 +245,8 @@ export default class Trip extends Component {
       type: this._type,
       offers: this._offers,
       timeline: this._timeline,
-      // timeline: [],
       price: null,
       city: ``,
-      totalPrice: 0,
       favorite: false,
     };
 
@@ -409,11 +407,6 @@ export default class Trip extends Component {
       // [`date-end`](value) {
       //   target.timeline[1] = new Date(moment(value, `h:mm`)).getTime();
       // },
-      favorite(value) {
-        if (value === `on`) {
-          target.favorite = true;
-        }
-      },
     };
   }
 }
