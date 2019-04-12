@@ -7,7 +7,7 @@ export const createDOMElementFromHtml = (template) => {
   return newElement.firstChild;
 };
 
-export const converNewPointData = (data) => {
+export const convertNewEventData = (data) => {
   return {
     'type': data.type.typeName,
     'base_price': data.price,
@@ -23,7 +23,7 @@ export const converNewPointData = (data) => {
   };
 };
 
-export const deleteArrayElement = (array, id) => {
+export const deleteArrayItem = (array, id) => {
   array.splice(id, 1);
   return array;
 };

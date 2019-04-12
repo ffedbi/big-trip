@@ -400,13 +400,6 @@ export default class Trip extends Component {
           typeName: value,
         };
       },
-      // [`date-start`]() {
-      //   console.log(value)
-      //   target.timeline[0] = this._timline;
-      // },
-      // [`date-end`](value) {
-      //   target.timeline[1] = new Date(moment(value, `h:mm`)).getTime();
-      // },
     };
   }
 }
