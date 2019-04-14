@@ -1,9 +1,12 @@
+import DOMPurify from 'dompurify';
+
 export const clearSection = (section) => {
   section.innerHTML = ``;
 };
 
 export const createDOMElementFromHtml = (template) => {
-  const newElement = document.createRange().createContextualFragment(template);
+  const santizeTemplate = DOMPurify.sanitize(template);
+  const newElement = document.createRange().createContextualFragment(santizeTemplate);
   return newElement.firstChild;
 };
 

@@ -73,10 +73,6 @@ export default class Point extends Component {
     const duration = moment.duration(moment(arr[1]).diff(moment(arr[0])));
     const days = duration.days();
     return days > 0 ? `${days}D ${duration.hours()}H ${duration.minutes()}M` : `${duration.hours()}H ${duration.minutes()}M`;
-    // const timeStart = moment(arr[0]);
-    // const timeEnd = moment(arr[1]);
-    // const duration = moment(timeEnd.diff(timeStart));
-    // return `${duration.hour()}H ${duration.minutes()}M`;
   }
 }
 

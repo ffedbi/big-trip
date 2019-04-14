@@ -173,12 +173,12 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
 });
 
 const getTotalPrice = (arrEvents) => {
-  let acc = 0;
+  let finalAmount = 0;
   for (let item of arrEvents) {
-    acc += +item[`price`];
+    finalAmount += +item[`price`];
   }
 
-  TOTAL_PRICE_SECTION.textContent = `€ ${acc}`;
+  TOTAL_PRICE_SECTION.textContent = `€ ${finalAmount}`;
 };
 
 const renderFilters = (data, section, type) => {
