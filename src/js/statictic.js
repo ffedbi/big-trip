@@ -7,15 +7,18 @@ const MONEY_CANVAS = document.querySelector(`.statistic__money`);
 const TRANSPORT_CANVAS = document.querySelector(`.statistic__transport`);
 const TIME_CANVAS = document.querySelector(`.statistic__time-spend`);
 const BAR_HEIGHT = 55;
+const timeOptions = {
+  dayLengthInHours: 24,
+  roundingStep: 30
+};
 
 let moneyChart = null;
 let transportChart = null;
 let timeChart = null;
 
 const getDurationEvents = (arr) => {
-  const TIME_START = arr[0];
-  const TIME_END = arr[1];
-  return TIME_END - TIME_START;
+  const duration = moment.duration(moment(arr[1]).diff(moment(arr[0])));
+  return duration.days() * timeOptions.dayLengthInHours + duration.hours() + (duration.minutes() > timeOptions.roundingStep ? 1 : 0);
 };
 
 const getTypeEvent = (data) => {
@@ -69,14 +72,14 @@ const getTotalDurationEvents = (data) => {
 
   return {
     labels: Object.keys(result),
-    values: Object.values(result).map((item) => moment.utc(item).format(`h`)),
+    values: Object.values(result),
     title: `TIME SPENT`,
     formatter: (val) => `${val}H`,
   };
 };
 
 const createHorizontalBarChart = (canvasElement, chartData) => {
-  const CHART = new Chart(canvasElement, {
+  const chart = new Chart(canvasElement, {
     plugins: [ChartDataLabels],
     type: `horizontalBar`,
     data: {
@@ -140,8 +143,8 @@ const createHorizontalBarChart = (canvasElement, chartData) => {
       },
     },
   });
-  CHART.height = BAR_HEIGHT * chartData.values.length;
-  return CHART;
+  chart.height = BAR_HEIGHT * chartData.values.length;
+  return chart;
 };
 
 const updateChart = (chart, data) => {
@@ -152,17 +155,17 @@ const updateChart = (chart, data) => {
 };
 
 export const initStat = (data) => {
-  const MONEY_DATA = getPriceEvents(data);
-  const TRANSPORT_DATA = getTypeEvent(data);
-  const TIME_DATA = getTotalDurationEvents(data);
+  const moneyData = getPriceEvents(data);
+  const transportData = getTypeEvent(data);
+  const timeData = getTotalDurationEvents(data);
 
   if (!moneyChart) {
-    moneyChart = createHorizontalBarChart(MONEY_CANVAS, MONEY_DATA);
-    transportChart = createHorizontalBarChart(TRANSPORT_CANVAS, TRANSPORT_DATA);
-    timeChart = createHorizontalBarChart(TIME_CANVAS, TIME_DATA);
+    moneyChart = createHorizontalBarChart(MONEY_CANVAS, moneyData);
+    transportChart = createHorizontalBarChart(TRANSPORT_CANVAS, transportData);
+    timeChart = createHorizontalBarChart(TIME_CANVAS, timeData);
   }
 
-  updateChart(moneyChart, MONEY_DATA);
-  updateChart(transportChart, TRANSPORT_DATA);
-  updateChart(timeChart, TIME_DATA);
+  updateChart(moneyChart, moneyData);
+  updateChart(transportChart, transportData);
+  updateChart(timeChart, timeData);
 };

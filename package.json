@@ -15,6 +15,7 @@
     "babel-loader": "8.0.5",
     "chart.js": "2.8.0",
     "chartjs-plugin-datalabels": "0.6.0",
+    "dompurify": "1.0.10",
     "eslint": "5.13.0",
     "eslint-config-htmlacademy": "0.5.2",
     "flatpickr": "4.5.7",

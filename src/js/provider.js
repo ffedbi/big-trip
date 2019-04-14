@@ -20,10 +20,10 @@ export default class Provider {
           return points;
         });
     } else {
-      const RAW_POINTS_MAP = this._store.getAll();
-      const RAW_POINTS = objectToArray(RAW_POINTS_MAP);
-      const POINTS = ModelPoint.parsePoints(RAW_POINTS);
-      return Promise.resolve(POINTS);
+      const rawPointsMap = this._store.getAll();
+      const rawPoints = objectToArray(rawPointsMap);
+      const points = ModelPoint.parseItems(rawPoints);
+      return Promise.resolve(points);
     }
   }
 
@@ -40,16 +40,16 @@ export default class Provider {
   createPoint({point}) {
     if (Provider._isOnline()) {
       return this._api.createPoint({point})
-        .then(() => {
-          this._store.setItem({key: point.id, item: point.toRAW()});
-          return point;
+        .then((response) => {
+          this._store.setItem({key: response.id, item: response});
+
+          return response;
         });
-    } else {
-      point.id = this._generateId();
-      this._needSync = true;
-      this._store.setItem({key: point.id, item: point});
-      return Promise.resolve(ModelPoint.parsePoint(point));
     }
+    point.id = this._generateId();
+    this._needSync = true;
+    this._store.setItem({key: point.id, item: point});
+    return Promise.resolve(ModelPoint.parseItem(point));
   }
 
   updatePoint({id, data}) {
@@ -60,10 +60,10 @@ export default class Provider {
           return point;
         });
     } else {
-      const POINT = data;
+      const point = data;
       this._needSync = true;
-      this._store.setItem({key: POINT.id, item: POINT});
-      return Promise.resolve(ModelPoint.parsePoint(POINT));
+      this._store.setItem({key: point.id, item: point});
+      return Promise.resolve(ModelPoint.parseItem(point));
     }
   }
 

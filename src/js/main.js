@@ -1,5 +1,5 @@
-import {clearSection, getId, POINT_DEFAULT_DATA} from './utils';
-import {DATA_FILTERS, DATA_SORTING_FILTERS} from './data';
+import {clearSection, convertNewEventData, getId, deleteArrayItem} from './utils';
+import {DATA_FILTERS, DATA_SORTING_FILTERS, POINT_DEFAULT_DATA} from './data';
 import {initStat} from "./statictic";
 import Point from "./point";
 import Trip from "./trip";
@@ -10,116 +10,52 @@ import Store from "./store";
 import moment from 'moment';
 import TravelDay from './travel-day';
 
-const DAYS_BLOCK = document.querySelector(`.trip-points`);
+const DAYS_SECTION = document.querySelector(`.trip-points`);
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
 const SORTING_SECTION = document.querySelector(`.trip-sorting`);
 const ACTIVE_BUTTON_CLASS = `view-switch__item--active`;
-const MAIN = document.querySelector(`.main`);
-const STATISTIC = document.querySelector(`.statistic`);
+const SECTION_MAIN = document.querySelector(`.main`);
+const SECTION_STATISTIC = document.querySelector(`.statistic`);
 const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`);
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
-const TOTAL_PRICE_EL = document.querySelector(`.trip__total-cost`);
+const TOTAL_PRICE_SECTION = document.querySelector(`.trip__total-cost`);
 const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
-
-const POINT_STORE_KEY = `points-store-key`;
-const api = new API();
-const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
-const provider = new Provider({api, store, generateId: getId});
-let eventsData = null;
-let eventsDestination = null;
-let eventsOffers = null;
-
-const createArrayDates = (arrayPointsData) => {
-  let arrayDates = [];
-  for (let point of arrayPointsData) {
-    const DAY = moment(point.timeline[0]).format(`D MMM YY`);
-    if (arrayDates.indexOf(DAY) === -1) {
-      arrayDates.push(DAY);
-    }
-  }
-  return arrayDates;
-};
-
-const renderDays = (arrayPointsData) => {
-  clearSection(DAYS_BLOCK);
-  const arrayDates = createArrayDates(arrayPointsData);
-  for (let date of arrayDates) {
-    const DAY = new TravelDay(date);
-    const ARRAY_FILTERED_EVENTS = arrayPointsData.filter((point) => moment(point.timeline[0]).format(`D MMM YY`) === date);
-    const DAY_ELEMENT_FROM_HTML = DAY.render();
-    DAYS_BLOCK.appendChild(DAY_ELEMENT_FROM_HTML);
-    const DIST_EVENTS = DAY_ELEMENT_FROM_HTML.querySelector(`.trip-day__items`);
-    renderPoints(ARRAY_FILTERED_EVENTS, DIST_EVENTS);
-  }
-};
-
-BUTTON_NEW_EVENT.addEventListener(`click`, () => {
-  let newPointEdit = new Trip(POINT_DEFAULT_DATA, eventsOffers, eventsDestination);
-  newPointEdit.render();
-  DAYS_BLOCK.insertBefore(newPointEdit.element, DAYS_BLOCK.firstChild);
-
-  newPointEdit.onSubmit = (newData) => {
-    window.console.log(newData);
-    provider.createPoint({point: newData});
-  };
-});
-
 const Messages = {
   loading: `Loading route...`,
   error: `Something went wrong while loading your route info. Check your connection or try again later`,
 };
+DAYS_SECTION.textContent = Messages.loading;
+const POINT_STORE_KEY = `points-store-key`;
+const api = new API();
+const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
+const provider = new Provider({api, store, generateId: getId});
 
-DAYS_BLOCK.textContent = Messages.loading;
+let points = null;
+let eventsDestination = null;
+let eventsOffers = null;
 
-document.addEventListener(`DOMContentLoaded`, () => {
-  provider.getPoints()
-    .then((points) => {
-      eventsData = points;
-      renderDays(eventsData);
-      getTotalPrice(eventsData);
-    })
-    .catch(() => {
-      DAYS_BLOCK.textContent = Messages.error;
-    });
-
-  provider.getDestinations()
-    .then((data) => {
-      eventsDestination = data;
-    });
-
-  provider.getOffers()
-    .then((offersData) => {
-      eventsOffers = offersData;
-    });
-});
-
-const getTotalPrice = (arrEvents) => {
-  let acc = 0;
-  for (let item of arrEvents) {
-    acc += +item[`price`];
+const getSortedEventByDay = (events) => {
+  let result = {};
+  for (let point of events) {
+    const day = moment(point.timeline[0]).format(`D MMM YY`);
+    if (!result[day]) {
+      result[day] = [];
+    }
+    result[day].push(point);
   }
 
-  TOTAL_PRICE_EL.textContent = `€ ${acc}`;
+  return result;
 };
-
-const renderFilters = (data, section, type) => {
-  for (let item of data) {
-    const FILTER = new Filter(item, type);
-
-    FILTER.onFilter = () => {
-      clearSection(DAYS_BLOCK);
-      let newPointData = filterPoint(eventsData, FILTER.name);
-      renderDays(newPointData);
-    };
-
-    FILTER.render();
-    section.appendChild(FILTER.element);
-  }
-};
-
-const deletePoint = (trip, id) => {
-  eventsData.splice(id, 1);
-  return trip;
+const renderDays = (events) => {
+  clearSection(DAYS_SECTION);
+  const pointSortedDay = getSortedEventByDay(events);
+  Object.entries(pointSortedDay).forEach((item) => {
+    const [day, eventList] = item;
+    const dayData = new TravelDay(day).render();
+    DAYS_SECTION.appendChild(dayData);
+    const distEvents = dayData.querySelector(`.trip-day__items`);
+    renderPoints(eventList, distEvents);
+  });
 };
 
 const renderPoints = (data, dist) => {
@@ -160,6 +96,8 @@ const renderPoints = (data, dist) => {
           trip.unlockToSave();
           trip.destroy();
         });
+
+      getTotalPrice(points);
     };
 
     trip.onDelete = ({id}) => {
@@ -167,6 +105,10 @@ const renderPoints = (data, dist) => {
       provider.deletePoint({id})
         .then(() => provider.getPoints())
         .then(renderDays)
+        .then(() => {
+          trip.unlockToDelete();
+          trip.destroy();
+        })
         .catch(() => {
           trip.shake();
           trip.element.style.border = `1px solid #ff0000`;
@@ -176,7 +118,8 @@ const renderPoints = (data, dist) => {
           trip.destroy();
         });
 
-      deletePoint(eventsData, item);
+      deleteArrayItem(points, item);
+      getTotalPrice(points);
     };
 
     trip.onKeydownEsc = () => {
@@ -190,28 +133,91 @@ const renderPoints = (data, dist) => {
   }
 };
 
-const filterPoint = (points, filterName) => {
+BUTTON_NEW_EVENT.addEventListener(`click`, () => {
+  BUTTON_NEW_EVENT.disabled = true;
+  let newPointEdit = new Trip(POINT_DEFAULT_DATA, eventsOffers, eventsDestination);
+  DAYS_SECTION.insertBefore(newPointEdit.render(), DAYS_SECTION.firstChild);
+
+  newPointEdit.onSubmit = (newData) => {
+    newPointEdit.lockToSaving();
+    provider.createPoint({point: convertNewEventData(newData)})
+      .then((newPoint) => {
+        newPointEdit.unlockToSave();
+        points.push(newPoint);
+        getTotalPrice(points);
+        renderDays(points);
+      })
+      .catch(() => {
+        newPointEdit.shake();
+        newPointEdit.element.style.border = `1px solid #ff0000`;
+      })
+      .then(() => {
+        newPointEdit.element.style.border = ``;
+        BUTTON_NEW_EVENT.disabled = false;
+      });
+  };
+
+  newPointEdit.onDelete = () => {
+    newPointEdit.lockToDeleting();
+    newPointEdit.destroy();
+    renderDays(points);
+    BUTTON_NEW_EVENT.disabled = false;
+  };
+
+  newPointEdit.onKeydownEsc = () => {
+    newPointEdit.lockToDeleting();
+    newPointEdit.destroy();
+    renderDays(points);
+    BUTTON_NEW_EVENT.disabled = false;
+  };
+});
+
+const getTotalPrice = (arrEvents) => {
+  let finalAmount = 0;
+  for (let item of arrEvents) {
+    finalAmount += +item[`price`];
+  }
+
+  TOTAL_PRICE_SECTION.textContent = `€ ${finalAmount}`;
+};
+
+const renderFilters = (data, section, type) => {
+  for (let item of data) {
+    const filter = new Filter(item, type);
+
+    filter.onFilter = () => {
+      clearSection(DAYS_SECTION);
+      let newPointData = filterPoint(points, filter.name);
+      renderDays(newPointData);
+    };
+
+    filter.render();
+    section.appendChild(filter.element);
+  }
+};
+
+const filterPoint = (events, filterName) => {
   let result;
-  const NAME = filterName.toLowerCase();
-  switch (NAME) {
+  const name = filterName.toLowerCase();
+  switch (name) {
     case `everything`:
     case `offers`:
-      result = points;
+      result = events;
       break;
     case `future`:
-      result = points.filter((item) => new Date() < new Date(item.timeline[0]));
+      result = events.filter((item) => new Date() < new Date(item.timeline[0]));
       break;
     case `past`:
-      result = points.filter((item) => new Date() > new Date(item.timeline[0]));
+      result = events.filter((item) => new Date() > new Date(item.timeline[0]));
       break;
     case `price`:
-      result = points.sort((a, b) => b.price - a.price);
+      result = events.sort((a, b) => b.price - a.price);
       break;
     case `time`:
-      result = points.sort((a, b) => b.timeline[0] - a.timeline[0]);
+      result = events.sort((a, b) => b.timeline[0] - a.timeline[0]);
       break;
     default:
-      result = points;
+      result = events;
   }
   return result;
 };
@@ -221,9 +227,12 @@ const onBtnStatisticClick = (e) => {
   if (!e.target.classList.contains(ACTIVE_BUTTON_CLASS)) {
     BUTTON_TABLE.classList.remove(ACTIVE_BUTTON_CLASS);
     e.target.classList.add(ACTIVE_BUTTON_CLASS);
-    MAIN.classList.add(`visually-hidden`);
-    STATISTIC.classList.remove(`visually-hidden`);
-    initStat(eventsData);
+    SECTION_MAIN.classList.add(`visually-hidden`);
+    SORTING_SECTION.classList.add(`visually-hidden`);
+    FILTERS_SECTION.classList.add(`visually-hidden`);
+    SECTION_STATISTIC.classList.remove(`visually-hidden`);
+    BUTTON_NEW_EVENT.disabled = true;
+    initStat(points);
   }
 };
 
@@ -232,10 +241,13 @@ const onBtnTableClick = (e) => {
   if (!e.target.classList.contains(ACTIVE_BUTTON_CLASS)) {
     BUTTON_STATISTIC.classList.remove(ACTIVE_BUTTON_CLASS);
     e.target.classList.add(ACTIVE_BUTTON_CLASS);
-    MAIN.classList.add(`visually-hidden`);
-    STATISTIC.classList.remove(`visually-hidden`);
-    MAIN.classList.remove(`visually-hidden`);
-    STATISTIC.classList.add(`visually-hidden`);
+    SECTION_MAIN.classList.add(`visually-hidden`);
+    SECTION_STATISTIC.classList.remove(`visually-hidden`);
+    FILTERS_SECTION.classList.remove(`visually-hidden`);
+    SORTING_SECTION.classList.remove(`visually-hidden`);
+    SECTION_MAIN.classList.remove(`visually-hidden`);
+    SECTION_STATISTIC.classList.add(`visually-hidden`);
+    BUTTON_NEW_EVENT.disabled = false;
   }
 };
 
@@ -246,6 +258,20 @@ window.addEventListener(`offline`, () => {
 window.addEventListener(`online`, () => {
   document.title = document.title.split(`[OFFLINE]`)[0];
   provider.syncPoints();
+});
+
+document.addEventListener(`DOMContentLoaded`, () => {
+  Promise.all([provider.getPoints(), provider.getDestinations(), provider.getOffers()])
+    .then(([responseEvents, responseDestinations, responseOffers]) => {
+      points = responseEvents;
+      eventsDestination = responseDestinations;
+      eventsOffers = responseOffers;
+      getTotalPrice(points);
+      renderDays(points);
+    })
+    .catch(() => {
+      DAYS_SECTION.textContent = Messages.error;
+    });
 });
 
 renderFilters(DATA_FILTERS, FILTERS_SECTION);

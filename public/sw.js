@@ -2,7 +2,10 @@ const CACHE_NAME = `BIG_TRIP_V1.0`;
 
 const putToSWCache = (evt, response) => {
   caches.open(CACHE_NAME)
-    .then((cache) => cache.put(evt.request, response));
+    .then((cache) => cache.put(evt.request, response))
+    .catch((err) => {
+      return err;
+    })
 };
 
 self.addEventListener(`install`, (evt) => {
@@ -38,7 +41,7 @@ self.addEventListener(`fetch`, (evt) => {
           .catch((err) => {
             throw err;
           });
-      }),
+      })
   );
 });
 

@@ -2,7 +2,7 @@ import {POINTS_TYPE} from "./data";
 
 export default class ModelPoint {
   constructor(data) {
-    this.id = data[`id`] || ``;
+    this.id = data[`id`];
     this.type = {
       typeName: data[`type`] || `taxi`,
       icon: POINTS_TYPE[data[`type`]] || POINTS_TYPE[data[`taxi`]],
@@ -33,11 +33,11 @@ export default class ModelPoint {
     };
   }
 
-  static parsePoint(data) {
+  static parseItem(data) {
     return new ModelPoint(data);
   }
 
-  static parsePoints(data) {
-    return data.map(ModelPoint.parsePoint);
+  static parseItems(data) {
+    return data.map(ModelPoint.parseItem);
   }
 }

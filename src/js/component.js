@@ -7,6 +7,7 @@ export default class Component {
     }
 
     this._element = null;
+    this._ui = {};
   }
 
   get element() {
@@ -16,10 +17,6 @@ export default class Component {
   get template() {
     throw new Error(`You have to define template.`);
   }
-
-  _bind() {}
-
-  _unbind() {}
 
   render() {
     this.destroy();
@@ -35,4 +32,10 @@ export default class Component {
   }
 
   update() {}
+
+  _bind() {}
+
+  _unbind() {}
+
+
 }

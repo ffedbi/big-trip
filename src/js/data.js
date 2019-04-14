@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 export const DATA_FILTERS = [
   {
     description: `Everything`,
@@ -38,6 +40,19 @@ export const POINTS_TYPE = {
   'check-in': `🏨`,
   'sightseeing': `🏛️`,
   'restaurant': `🍴`,
+};
+
+export const POINT_DEFAULT_DATA = {
+  id: null,
+  type: {typeName: `taxi`, icon: `🚕`},
+  city: ``,
+  destination: [],
+  price: 0,
+  timeline: [moment().valueOf(), moment().valueOf()],
+  pictures: [],
+  offers: [],
+  description: ``,
+  isFavorite: false,
 };
 
 

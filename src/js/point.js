@@ -1,6 +1,8 @@
 import Component from "./component";
 import moment from "moment";
 
+const MAX_NUMBER_OFFERS = 3;
+
 export default class Point extends Component {
   constructor(data) {
     super();
@@ -13,47 +15,6 @@ export default class Point extends Component {
 
     this._onElement = null;
     this._onClickPointElement = this._onClickPointElement.bind(this);
-  }
-
-  _makeHtmlButtonOffer() {
-    let htmlBtnOffer = ``;
-    if (!this._offers.length) {
-      return htmlBtnOffer;
-    }
-
-    const counter = this._offers.length > 3 ? 3 : this._offers.length;
-    for (let i = 0; i < counter; i++) {
-      if (this._offers[i].accepted) {
-        htmlBtnOffer += `<li><button class="trip-point__offer">${this._offers[i].title} + &euro;&nbsp;${this._offers[i].price}</button></li>`;
-      }
-    }
-    return htmlBtnOffer;
-  }
-
-  _onClickPointElement(e) {
-    e.preventDefault();
-    if (typeof this._onClickPointElement === `function`) {
-      this._onElement();
-    }
-  }
-
-  _bind() {
-    if (this._element) {
-      this._element.addEventListener(`click`, this._onClickPointElement);
-    }
-  }
-
-  _unbind() {
-    if (this._element) {
-      this._element.removeEventListener(`click`, this._onClickPointElement);
-    }
-  }
-
-  static _getDurationEvent(arr) {
-    const TIME_START = moment(arr[0]);
-    const TIME_END = moment(arr[1]);
-    const DURATION = moment(TIME_END.diff(TIME_START));
-    return `${DURATION.hour()}H ${DURATION.minutes()}M`;
   }
 
   get template() {
@@ -82,6 +43,36 @@ export default class Point extends Component {
     this._price = data.price;
     this._offers = data.offers;
     this._duration = Point._getDurationEvent(data.timeline);
+  }
+
+  _makeHtmlButtonOffer() {
+    return this._offers.filter((offer) => offer.accepted).slice(0, MAX_NUMBER_OFFERS).map((offer) =>
+      `<li><button class="trip-point__offer">${offer.title} + &euro;&nbsp;${offer.price}</button></li>`).join(``);
+  }
+
+  _onClickPointElement(e) {
+    e.preventDefault();
+    if (typeof this._onClickPointElement === `function`) {
+      this._onElement();
+    }
+  }
+
+  _bind() {
+    if (this._element) {
+      this._element.addEventListener(`click`, this._onClickPointElement);
+    }
+  }
+
+  _unbind() {
+    if (this._element) {
+      this._element.removeEventListener(`click`, this._onClickPointElement);
+    }
+  }
+
+  static _getDurationEvent(arr) {
+    const duration = moment.duration(moment(arr[1]).diff(moment(arr[0])));
+    const days = duration.days();
+    return days > 0 ? `${days}D ${duration.hours()}H ${duration.minutes()}M` : `${duration.hours()}H ${duration.minutes()}M`;
   }
 }
 
