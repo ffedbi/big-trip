@@ -24,6 +24,7 @@ const Messages = {
   loading: `Loading route...`,
   error: `Something went wrong while loading your route info. Check your connection or try again later`,
 };
+const BORDER_ERROR = `1px solid #ff0000`;
 DAYS_SECTION.textContent = Messages.loading;
 const POINT_STORE_KEY = `points-store-key`;
 const api = new API();
@@ -90,7 +91,7 @@ const renderPoints = (data, dist) => {
         })
         .catch(() => {
           trip.shake();
-          trip.element.style.border = `1px solid #ff0000`;
+          trip.element.style.border = BORDER_ERROR;
         })
         .then(() => {
           trip.unlockToSave();
@@ -111,7 +112,7 @@ const renderPoints = (data, dist) => {
         })
         .catch(() => {
           trip.shake();
-          trip.element.style.border = `1px solid #ff0000`;
+          trip.element.style.border = BORDER_ERROR;
         })
         .then(() => {
           trip.unlockToDelete();
@@ -149,7 +150,7 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
       })
       .catch(() => {
         newPointEdit.shake();
-        newPointEdit.element.style.border = `1px solid #ff0000`;
+        newPointEdit.element.style.border = BORDER_ERROR;
       })
       .then(() => {
         newPointEdit.element.style.border = ``;

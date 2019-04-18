@@ -3,6 +3,10 @@ import flatpickr from "flatpickr";
 import {POINTS_TYPE} from "./data";
 import moment from "moment";
 
+const ANIMATION_TIMEOUT = 600;
+const NUMBER_OF_MILLISECONDS_PER_SECOND = 1000;
+const KEY_CODE_ESC = 27;
+
 export default class Trip extends Component {
   constructor(data, offersList, destinations) {
     super();
@@ -17,7 +21,7 @@ export default class Trip extends Component {
     this._pictures = data.pictures;
     this._favorite = data.favorite;
 
-    this._offersList = offersList;
+    this._allPossibleOffers = offersList;
     this._destinations = destinations || [];
 
     this._onSubmit = null;
@@ -168,12 +172,11 @@ export default class Trip extends Component {
 
   shake() {
     if (this._element) {
-      const animationTimeout = 600;
-      this._element.style.animation = `shake ${animationTimeout / 1000}s`;
+      this._element.style.animation = `shake ${ANIMATION_TIMEOUT / NUMBER_OF_MILLISECONDS_PER_SECOND}s`;
 
       this._animationTimeoutId = setTimeout(() => {
         this._element.style.animation = ``;
-      }, animationTimeout);
+      }, ANIMATION_TIMEOUT);
     }
   }
 
@@ -192,7 +195,7 @@ export default class Trip extends Component {
   }
 
   _onKeydownEsc(e) {
-    if (typeof this._onEsc === `function` && e.keyCode === 27) {
+    if (typeof this._onEsc === `function` && e.keyCode === KEY_CODE_ESC) {
       this._onEsc();
     }
   }
@@ -324,7 +327,6 @@ export default class Trip extends Component {
       flatpickr(this._ui.inputTimeStart, {
         enableTime: true,
         altInput: true,
-        noCalendar: true,
         defaultDate: this._timeline[0],
         altFormat: `h:i`,
         dateFormat: `h:i`,
@@ -333,7 +335,6 @@ export default class Trip extends Component {
       flatpickr(this._ui.inputTimeEnd, {
         enableTime: true,
         altInput: true,
-        noCalendar: true,
         defaultDate: this._timeline[1],
         altFormat: `h:i`,
         dateFormat: `d h:i`,
@@ -364,7 +365,7 @@ export default class Trip extends Component {
       let value = e.target.value;
       this._price = 0;
       this._type = {typeName: value, icon: POINTS_TYPE[value]};
-      for (let item of this._offersList) {
+      for (let item of this._allPossibleOffers) {
         if (item.type === value) {
           this._offers = item.offers.map((offer) => {
             return {

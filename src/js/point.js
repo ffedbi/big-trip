@@ -15,6 +15,7 @@ export default class Point extends Component {
 
     this._onElement = null;
     this._onClickPointElement = this._onClickPointElement.bind(this);
+    this._onClickAddOffer = this._onClickAddOffer.bind(this);
   }
 
   get template() {
@@ -46,7 +47,7 @@ export default class Point extends Component {
   }
 
   _makeHtmlButtonOffer() {
-    return this._offers.filter((offer) => offer.accepted).slice(0, MAX_NUMBER_OFFERS).map((offer) =>
+    return this._offers.filter((offer) => !offer.accepted).slice(0, MAX_NUMBER_OFFERS).map((offer) =>
       `<li><button class="trip-point__offer">${offer.title} + &euro;&nbsp;${offer.price}</button></li>`).join(``);
   }
 
@@ -57,8 +58,40 @@ export default class Point extends Component {
     }
   }
 
+  _getUiElements() {
+    this._ui.offersBlock = this._element.querySelector(`.trip-point__offers`);
+  }
+
+  _onClickAddOffer(e) {
+    if (e.target.tagName.toLowerCase() === `button`) {
+      e.preventDefault();
+      e.stopPropagation();
+      const offerTitle = e.target.textContent.split(` + €`);
+      console.log(offerTitle)
+      for (let offer of this._offers) {
+        if (offerTitle[0] === offer.title) {
+          /* DIIIICCC!! */
+          this._price = +this._price + +offer.price;
+          offer.accepted = true;
+          break;
+        }
+      }
+      this._partialUpdate();
+    }
+  }
+
+  _partialUpdate() {
+    this._unbind();
+    const oldElement = this._element;
+    this._element.parentNode.replaceChild(this.render(), oldElement);
+    oldElement.remove();
+    this._bind();
+  }
+
   _bind() {
     if (this._element) {
+      this._getUiElements();
+      this._ui.offersBlock.addEventListener(`click`, this._onClickAddOffer);
       this._element.addEventListener(`click`, this._onClickPointElement);
     }
   }
