@@ -14,6 +14,7 @@ export default class Point extends Component {
     this._offers = data.offers;
 
     this._onElement = null;
+    this._onSubmit = null;
     this._onClickPointElement = this._onClickPointElement.bind(this);
     this._onClickAddOffer = this._onClickAddOffer.bind(this);
   }
@@ -35,6 +36,10 @@ export default class Point extends Component {
 
   set onClick(fn) {
     this._onElement = fn;
+  }
+
+  set onActive(fn) {
+    this._onSubmit = fn;
   }
 
   update(data) {
@@ -63,7 +68,7 @@ export default class Point extends Component {
   }
 
   _onClickAddOffer(e) {
-    if (e.target.tagName.toLowerCase() === `button`) {
+    if (e.target.tagName.toLowerCase() === `button` || typeof this._onSubmit === `function`) {
       e.preventDefault();
       e.stopPropagation();
       const offerTitle = e.target.textContent.split(` + €`);
@@ -75,6 +80,7 @@ export default class Point extends Component {
         }
       }
       this._partialUpdate();
+      this._onSubmit(this._data)
     }
   }
 

@@ -16,7 +16,7 @@ export default class Trip extends Component {
     this._city = data.city;
     this._timeline = data.timeline;
     this._offers = data.offers;
-    this._price = data.price;
+    this._price = +data.price;
     this._description = data.description;
     this._pictures = data.pictures;
     this._favorite = data.favorite;
@@ -401,7 +401,7 @@ export default class Trip extends Component {
         target.city = value;
       },
       price(value) {
-        target.price = value;
+        target.price = +value;
       },
       [`travel-way`](value) {
         target.type = {

@@ -47,6 +47,7 @@ const getSortedEventByDay = (events) => {
 
   return result;
 };
+
 const renderDays = (events) => {
   clearSection(DAYS_SECTION);
   //getCheckActiveFilters(events)
@@ -83,6 +84,16 @@ const renderPoints = (data, dist) => {
       trip.render();
       dist.replaceChild(trip.element, point.element);
       point.destroy();
+    };
+
+    point.onActive = (newData) => {
+      provider.updatePoint({id: newData.id, data: newData.toRAW()})
+        .then((response) => {
+          if (response) {
+            trip.update(response)
+          }
+        });
+      getTotalPrice(points);
     };
 
     trip.onSubmit = (newData) => {
