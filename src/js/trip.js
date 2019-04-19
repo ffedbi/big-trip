@@ -45,11 +45,6 @@ export default class Trip extends Component {
     return `<article class="point">
     <form action="" method="get">
       <header class="point__header">
-        <label class="point__date">
-          choose day
-          <input class="point__input" type="text" placeholder="MAR 18" name="day">
-        </label>
-
         <div class="travel-way">
           <label class="travel-way__label" for="travel-way__toggle-${this._id}">${this._type.icon}</label>
           <input type="checkbox" class="travel-way__toggle visually-hidden" id="travel-way__toggle-${this._id}">
@@ -201,17 +196,25 @@ export default class Trip extends Component {
   }
 
   _onChangePrice(e) {
-    this._price = e.target.value;
+    const value = +e.target.value;
+
+    if (value < 0 || !Number.isInteger(value)) {
+      this._ui.btnSave.disabled = true;
+      this.shake();
+      return;
+    }
+    this._price = value;
+    this._partialUpdate();
   }
 
   _onChangeTimeStart() {
     const inputValue = this._ui.inputTimeStart.value;
-    this._timeline[0] = new Date(moment(inputValue, `h:mm`)).getTime();
+    this._timeline[0] = new Date(moment(inputValue)).getTime();
   }
 
   _onChangeTimeEnd() {
     const inputValue = this._ui.inputTimeEnd.value;
-    this._timeline[1] = new Date(moment(inputValue, `h:mm`)).getTime();
+    this._timeline[1] = new Date(moment(inputValue)).getTime();
   }
 
   _makeHtmlButtonOffers() {
@@ -234,7 +237,7 @@ export default class Trip extends Component {
 
   _onSubmitBtnClick(e) {
     e.preventDefault();
-    const formData = new FormData(this._element.querySelector(`form`));
+    const formData = new FormData(this._ui.form);
     const newData = this._processForm(formData);
     if (typeof this._onSubmit === `function`) {
       this._onSubmit(newData);
@@ -270,6 +273,7 @@ export default class Trip extends Component {
   }
 
   _getUiElements() {
+    this._ui.form = this._element.querySelector(`form`);
     this._ui.btnSave = this._element.querySelector(`.point__button--save`);
     this._ui.btnReset = this._element.querySelector(`button[type="reset"]`);
     this._ui.travelWaySelect = this._element.querySelector(`.travel-way__select`);
@@ -320,24 +324,28 @@ export default class Trip extends Component {
       this._ui.travelWaySelect.addEventListener(`change`, this._onChangeType);
       this._ui.inputPrice.addEventListener(`change`, this._onChangePrice);
       this._ui.inputDestinations.addEventListener(`change`, this._onChangePointDestination);
-      this._ui.pointFavorite.addEventListener(`click`, this._onChangeFavoriteState);
       this._ui.offersBlock.addEventListener(`click`, this._onChangeOffers);
+      this._ui.pointFavorite.addEventListener(`click`, this._onChangeFavoriteState);
       document.addEventListener(`keydown`, this._onKeydownEsc);
 
       flatpickr(this._ui.inputTimeStart, {
         enableTime: true,
         altInput: true,
-        defaultDate: this._timeline[0],
-        altFormat: `h:i`,
-        dateFormat: `h:i`,
+        altFormat: `H:i`,
+        dateFormat: `Z`,
+        minuteIncrement: 1,
+        defaultDate: moment(this._timeline[0]).format(),
+        maxDate: this._timeline[1],
         onChange: this._onChangeTimeStart,
       });
       flatpickr(this._ui.inputTimeEnd, {
         enableTime: true,
         altInput: true,
-        defaultDate: this._timeline[1],
-        altFormat: `h:i`,
-        dateFormat: `d h:i`,
+        altFormat: `H:i`,
+        dateFormat: `Z`,
+        minuteIncrement: 1,
+        defaultDate: moment(this._timeline[1]).format(),
+        mixDate: this._timeline[0],
         onChange: this._onChangeTimeEnd,
       });
     }

@@ -8,7 +8,11 @@ export default class Store {
     const items = this.getAll();
     items[key] = item;
 
-    this._storage.setItem(this._storeKey, JSON.stringify(items));
+    try {
+      this._storage.setItem(this._storeKey, JSON.stringify(items));
+    } catch (e) {
+      return false;
+    }
   }
 
   getItem({key}) {
@@ -21,12 +25,22 @@ export default class Store {
     const items = this.getAll();
     delete items[key];
 
-    this._storage.setItem(this._storeKey, JSON.stringify(items));
+    try {
+      this._storage.setItem(this._storeKey, JSON.stringify(items));
+    } catch (e) {
+      return false;
+    }
   }
 
   getAll() {
     const emptyItems = {};
-    const items = this._storage.getItem(this._storeKey);
+    let items;
+
+    try {
+      items = this._storage.getItem(this._storeKey);
+    } catch (e) {
+      return false;
+    }
 
     if (!items) {
       return emptyItems;

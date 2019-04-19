@@ -67,10 +67,8 @@ export default class Point extends Component {
       e.preventDefault();
       e.stopPropagation();
       const offerTitle = e.target.textContent.split(` + €`);
-      console.log(offerTitle)
       for (let offer of this._offers) {
         if (offerTitle[0] === offer.title) {
-          /* DIIIICCC!! */
           this._price = +this._price + +offer.price;
           offer.accepted = true;
           break;

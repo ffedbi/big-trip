@@ -49,6 +49,7 @@ const getSortedEventByDay = (events) => {
 };
 const renderDays = (events) => {
   clearSection(DAYS_SECTION);
+  //getCheckActiveFilters(events)
   const pointSortedDay = getSortedEventByDay(events);
   Object.entries(pointSortedDay).forEach((item) => {
     const [day, eventList] = item;
@@ -59,10 +60,22 @@ const renderDays = (events) => {
   });
 };
 
+//
+// let filterLabels = [`everything`, `offers`, `future`, `past`, `price`, `time`]
+//
+// const getCheckActiveFilters = (events) => {
+//   let res = {};
+//   for (let name of filterLabels) {
+//     res[name] = filterPoint(events, name)
+//   }
+//
+//   console.log(res);
+//   return res
+// };
+
 const renderPoints = (data, dist) => {
   clearSection(dist);
-  for (let i = 0; i < data.length; i++) {
-    let item = data[i];
+  for (let item of data) {
     let point = new Point(item);
     let trip = new Trip(item, eventsOffers, eventsDestination);
 
@@ -108,7 +121,6 @@ const renderPoints = (data, dist) => {
         .then(renderDays)
         .then(() => {
           trip.unlockToDelete();
-          trip.destroy();
         })
         .catch(() => {
           trip.shake();
@@ -198,27 +210,25 @@ const renderFilters = (data, section, type) => {
 };
 
 const filterPoint = (events, filterName) => {
-  let result;
+  let result = events.slice();
   const name = filterName.toLowerCase();
   switch (name) {
     case `everything`:
+      return result;
     case `offers`:
-      result = events;
-      break;
+      return [];
     case `future`:
-      result = events.filter((item) => new Date() < new Date(item.timeline[0]));
-      break;
+      return result.filter((item) => new Date() < new Date(item.timeline[0]));
     case `past`:
-      result = events.filter((item) => new Date() > new Date(item.timeline[0]));
-      break;
+      return result.filter((item) => new Date() > new Date(item.timeline[0]));
     case `price`:
-      result = events.sort((a, b) => b.price - a.price);
+      result.sort((a, b) => b.price - a.price);
       break;
     case `time`:
-      result = events.sort((a, b) => b.timeline[0] - a.timeline[0]);
+      result.sort((a, b) => b.timeline[0] - a.timeline[0]);
       break;
     default:
-      result = events;
+      return result;
   }
   return result;
 };
