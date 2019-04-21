@@ -4,11 +4,12 @@ import {POINTS_TYPE} from "./data";
 import moment from "moment";
 
 const ANIMATION_TIMEOUT = 600;
-const NUMBER_OF_MILLISECONDS_PER_SECOND = 1000;
+const MILLISECONDS_PER_SECOND = 1000;
+const MIN_PRICE = 0;
 const KEY_CODE_ESC = 27;
 
 export default class Trip extends Component {
-  constructor(data, offersList, destinations) {
+  constructor(data, allPossibleOffers, destinations) {
     super();
 
     this._id = data.id;
@@ -21,7 +22,7 @@ export default class Trip extends Component {
     this._pictures = data.pictures;
     this._favorite = data.favorite;
 
-    this._allPossibleOffers = offersList;
+    this._allPossibleOffers = allPossibleOffers;
     this._destinations = destinations || [];
 
     this._onSubmit = null;
@@ -167,54 +168,12 @@ export default class Trip extends Component {
 
   shake() {
     if (this._element) {
-      this._element.style.animation = `shake ${ANIMATION_TIMEOUT / NUMBER_OF_MILLISECONDS_PER_SECOND}s`;
+      this._element.style.animation = `shake ${ANIMATION_TIMEOUT / MILLISECONDS_PER_SECOND}s`;
 
       this._animationTimeoutId = setTimeout(() => {
         this._element.style.animation = ``;
       }, ANIMATION_TIMEOUT);
     }
-  }
-
-  _onChangePointDestination(e) {
-    const value = e.target.value;
-
-    for (let item of this._destinations) {
-      if (item.name === value) {
-        this._city = item.name;
-        this._description = item.description;
-        this._pictures = item.pictures;
-      }
-    }
-
-    this._partialUpdate();
-  }
-
-  _onKeydownEsc(e) {
-    if (typeof this._onEsc === `function` && e.keyCode === KEY_CODE_ESC) {
-      this._onEsc();
-    }
-  }
-
-  _onChangePrice(e) {
-    const value = +e.target.value;
-
-    if (value < 0 || !Number.isInteger(value)) {
-      this._ui.btnSave.disabled = true;
-      this.shake();
-      return;
-    }
-    this._price = value;
-    this._partialUpdate();
-  }
-
-  _onChangeTimeStart() {
-    const inputValue = this._ui.inputTimeStart.value;
-    this._timeline[0] = new Date(moment(inputValue)).getTime();
-  }
-
-  _onChangeTimeEnd() {
-    const inputValue = this._ui.inputTimeEnd.value;
-    this._timeline[1] = new Date(moment(inputValue)).getTime();
   }
 
   _makeHtmlButtonOffers() {
@@ -233,17 +192,6 @@ export default class Trip extends Component {
   _makeHtmlPictures() {
     return this._pictures.map((picture) =>
       `<img src="${picture.src}" alt="picture from place" class="point__destination-image">`).join(``);
-  }
-
-  _onSubmitBtnClick(e) {
-    e.preventDefault();
-    const formData = new FormData(this._ui.form);
-    const newData = this._processForm(formData);
-    if (typeof this._onSubmit === `function`) {
-      this._onSubmit(newData);
-    }
-
-    this.update(newData);
   }
 
   _processForm(formData) {
@@ -266,12 +214,6 @@ export default class Trip extends Component {
     return entry;
   }
 
-  _onDeleteBtnClick() {
-    if (typeof this._onDelete === `function`) {
-      this._onDelete({id: this._id});
-    }
-  }
-
   _getUiElements() {
     this._ui.form = this._element.querySelector(`form`);
     this._ui.btnSave = this._element.querySelector(`.point__button--save`);
@@ -283,37 +225,6 @@ export default class Trip extends Component {
     this._ui.inputTimeEnd = this._element.querySelector(`.point__time input[name="date-end"]`);
     this._ui.offersBlock = this._element.querySelector(`.point__offers-wrap`);
     this._ui.pointFavorite = this._element.querySelector(`.point__favorite`);
-  }
-
-  _onChangeFavoriteState() {
-    this._favorite = !this._favorite;
-  }
-
-  _onChangeOffers(e) {
-    if (e.target.tagName.toLowerCase() === `input`) {
-      const offerTitle = e.target.value.split(`--`)[0];
-      const offerPrice = +e.target.value.split(`--`)[1];
-
-      if (e.target.checked) {
-        for (let offer of this._offers) {
-          if (offerPrice === offer.price && offerTitle === offer.title) {
-            this._price += +offerPrice;
-            offer.accepted = true;
-            break;
-          }
-        }
-        this._partialUpdate();
-      } else {
-        for (let offer of this._offers) {
-          if (offerPrice === offer.price && offerTitle === offer.title) {
-            this._price -= offerPrice;
-            offer.accepted = false;
-            break;
-          }
-        }
-        this._partialUpdate();
-      }
-    }
   }
 
   _bind() {
@@ -345,7 +256,7 @@ export default class Trip extends Component {
         dateFormat: `Z`,
         minuteIncrement: 1,
         defaultDate: moment(this._timeline[1]).format(),
-        mixDate: this._timeline[0],
+        minDate: this._timeline[0],
         onChange: this._onChangeTimeEnd,
       });
     }
@@ -368,10 +279,18 @@ export default class Trip extends Component {
     }
   }
 
+  _partialUpdate() {
+    this._unbind();
+    const oldElement = this._element;
+    this._element.parentNode.replaceChild(this.render(), oldElement);
+    oldElement.remove();
+    this._bind();
+  }
+
   _onChangeType(e) {
     if (e.target.tagName.toLowerCase() === `input`) {
       let value = e.target.value;
-      this._price = 0;
+      this._price = MIN_PRICE;
       this._type = {typeName: value, icon: POINTS_TYPE[value]};
       for (let item of this._allPossibleOffers) {
         if (item.type === value) {
@@ -387,12 +306,99 @@ export default class Trip extends Component {
     }
   }
 
-  _partialUpdate() {
-    this._unbind();
-    const oldElement = this._element;
-    this._element.parentNode.replaceChild(this.render(), oldElement);
-    oldElement.remove();
-    this._bind();
+  _onChangePointDestination(e) {
+    const value = e.target.value;
+
+    for (let item of this._destinations) {
+      if (item.name === value) {
+        this._city = item.name;
+        this._description = item.description;
+        this._pictures = item.pictures;
+      }
+    }
+
+    this._partialUpdate();
+  }
+
+  _onKeydownEsc(e) {
+    if (typeof this._onEsc === `function` && e.keyCode === KEY_CODE_ESC) {
+      this._onEsc();
+    }
+  }
+
+  _onChangePrice(e) {
+    const value = +e.target.value;
+
+    if (value < MIN_PRICE || !Number.isInteger(value)) {
+      this._ui.btnSave.disabled = true;
+      this.shake();
+      return;
+    }
+    this._price = value;
+    this._partialUpdate();
+  }
+
+  _onChangeTimeStart() {
+    const inputValue = this._ui.inputTimeStart.value;
+    this._timeline[0] = new Date(moment(inputValue)).getTime();
+  }
+
+  _onChangeTimeEnd() {
+    const inputValue = this._ui.inputTimeEnd.value;
+    this._timeline[1] = new Date(moment(inputValue)).getTime();
+  }
+
+  _onSubmitBtnClick(e) {
+    e.preventDefault();
+    const formData = new FormData(this._ui.form);
+    const newData = this._processForm(formData);
+    if (typeof this._onSubmit === `function`) {
+      this._onSubmit(newData);
+    }
+
+    this.update(newData);
+  }
+
+  _onDeleteBtnClick() {
+    if (typeof this._onDelete === `function`) {
+      this._onDelete({id: this._id});
+    }
+  }
+
+  _onChangeFavoriteState() {
+    this._favorite = !this._favorite;
+  }
+
+  _onChangeOffers(e) {
+    if (e.target.tagName.toLowerCase() === `input`) {
+      const offerTitle = e.target.value.split(`--`)[0];
+      const offerPrice = +e.target.value.split(`--`)[1];
+
+      if (e.target.checked) {
+        for (let offer of this._offers) {
+          if (offerPrice === offer.price && offerTitle === offer.title) {
+            this._price += +offerPrice;
+            offer.accepted = true;
+            break;
+          }
+        }
+        this._partialUpdate();
+      } else {
+        for (let offer of this._offers) {
+          if (offerPrice === offer.price && offerTitle === offer.title) {
+            this._price -= offerPrice;
+            offer.accepted = false;
+            break;
+          }
+        }
+
+        if (this._price <= MIN_PRICE) {
+          this._price = MIN_PRICE;
+        }
+
+        this._partialUpdate();
+      }
+    }
   }
 
   static createMapper(target) {
@@ -412,4 +418,3 @@ export default class Trip extends Component {
     };
   }
 }
-

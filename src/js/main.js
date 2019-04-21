@@ -24,8 +24,9 @@ const Messages = {
   loading: `Loading route...`,
   error: `Something went wrong while loading your route info. Check your connection or try again later`,
 };
-const BORDER_ERROR = `1px solid #ff0000`;
+const ERROR_STYLE = `1px solid #ff0000`;
 DAYS_SECTION.textContent = Messages.loading;
+
 const POINT_STORE_KEY = `points-store-key`;
 const api = new API();
 const store = new Store({key: POINT_STORE_KEY, storage: localStorage});
@@ -50,7 +51,6 @@ const getSortedEventByDay = (events) => {
 
 const renderDays = (events) => {
   clearSection(DAYS_SECTION);
-  //getCheckActiveFilters(events)
   const pointSortedDay = getSortedEventByDay(events);
   Object.entries(pointSortedDay).forEach((item) => {
     const [day, eventList] = item;
@@ -60,19 +60,6 @@ const renderDays = (events) => {
     renderPoints(eventList, distEvents);
   });
 };
-
-//
-// let filterLabels = [`everything`, `offers`, `future`, `past`, `price`, `time`]
-//
-// const getCheckActiveFilters = (events) => {
-//   let res = {};
-//   for (let name of filterLabels) {
-//     res[name] = filterPoint(events, name)
-//   }
-//
-//   console.log(res);
-//   return res
-// };
 
 const renderPoints = (data, dist) => {
   clearSection(dist);
@@ -86,13 +73,9 @@ const renderPoints = (data, dist) => {
       point.destroy();
     };
 
-    point.onActive = (newData) => {
-      provider.updatePoint({id: newData.id, data: newData.toRAW()})
-        .then((response) => {
-          if (response) {
-            trip.update(response)
-          }
-        });
+    point.onClickOffer = (newData) => {
+      trip.update(newData);
+      points[newData.id] = newData;
       getTotalPrice(points);
     };
 
@@ -115,7 +98,7 @@ const renderPoints = (data, dist) => {
         })
         .catch(() => {
           trip.shake();
-          trip.element.style.border = BORDER_ERROR;
+          trip.element.style.border = ERROR_STYLE;
         })
         .then(() => {
           trip.unlockToSave();
@@ -135,7 +118,7 @@ const renderPoints = (data, dist) => {
         })
         .catch(() => {
           trip.shake();
-          trip.element.style.border = BORDER_ERROR;
+          trip.element.style.border = ERROR_STYLE;
         })
         .then(() => {
           trip.unlockToDelete();
@@ -173,7 +156,7 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
       })
       .catch(() => {
         newPointEdit.shake();
-        newPointEdit.element.style.border = BORDER_ERROR;
+        newPointEdit.element.style.border = ERROR_STYLE;
       })
       .then(() => {
         newPointEdit.element.style.border = ``;
@@ -233,15 +216,12 @@ const filterPoint = (events, filterName) => {
     case `past`:
       return result.filter((item) => new Date() > new Date(item.timeline[0]));
     case `price`:
-      result.sort((a, b) => b.price - a.price);
-      break;
+      return result.sort((a, b) => b.price - a.price);
     case `time`:
-      result.sort((a, b) => b.timeline[0] - a.timeline[0]);
-      break;
+      return result.sort((a, b) => b.timeline[0] - a.timeline[0]);
     default:
       return result;
   }
-  return result;
 };
 
 const onBtnStatisticClick = (e) => {

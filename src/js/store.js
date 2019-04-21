@@ -9,7 +9,7 @@ export default class Store {
     items[key] = item;
 
     try {
-      this._storage.setItem(this._storeKey, JSON.stringify(items));
+      return this._storage.setItem(this._storeKey, JSON.stringify(items));
     } catch (e) {
       return false;
     }
@@ -26,7 +26,7 @@ export default class Store {
     delete items[key];
 
     try {
-      this._storage.setItem(this._storeKey, JSON.stringify(items));
+      return this._storage.setItem(this._storeKey, JSON.stringify(items));
     } catch (e) {
       return false;
     }
