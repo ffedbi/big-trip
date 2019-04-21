@@ -5,8 +5,8 @@ export const clearSection = (section) => {
 };
 
 export const createDOMElementFromHtml = (template) => {
-  const santizeTemplate = DOMPurify.sanitize(template);
-  const newElement = document.createRange().createContextualFragment(santizeTemplate);
+  const newElement = document.createElement(`div`);
+  newElement.innerHTML = DOMPurify.sanitize(template);
   return newElement.firstChild;
 };
 

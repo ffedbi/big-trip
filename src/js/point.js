@@ -6,15 +6,19 @@ const MAX_NUMBER_OFFERS = 3;
 export default class Point extends Component {
   constructor(data) {
     super();
+
     this._type = data.type;
     this._city = data.city;
     this._timeline = data.timeline;
     this._duration = Point._getDurationEvent(this._timeline);
     this._price = data.price;
     this._offers = data.offers;
+    this._id = data.id;
 
     this._onElement = null;
+    this._onSubmit = null;
     this._onClickPointElement = this._onClickPointElement.bind(this);
+    this._onClickOffer = this._onClickOffer.bind(this);
   }
 
   get template() {
@@ -36,6 +40,10 @@ export default class Point extends Component {
     this._onElement = fn;
   }
 
+  set onClickOffer(fn) {
+    this._onSubmit = fn;
+  }
+
   update(data) {
     this._type = data.type;
     this._city = data.city;
@@ -46,19 +54,52 @@ export default class Point extends Component {
   }
 
   _makeHtmlButtonOffer() {
-    return this._offers.filter((offer) => offer.accepted).slice(0, MAX_NUMBER_OFFERS).map((offer) =>
+    return this._offers.filter((offer) => !offer.accepted).slice(0, MAX_NUMBER_OFFERS).map((offer) =>
       `<li><button class="trip-point__offer">${offer.title} + &euro;&nbsp;${offer.price}</button></li>`).join(``);
   }
 
-  _onClickPointElement(e) {
-    e.preventDefault();
-    if (typeof this._onClickPointElement === `function`) {
-      this._onElement();
+  _getUiElements() {
+    this._ui.offersBlock = this._element.querySelector(`.trip-point__offers`);
+  }
+
+  _onClickOffer(e) {
+    if (e.target.tagName.toLowerCase() === `button` || typeof this._onSubmit === `function`) {
+      e.preventDefault();
+      e.stopPropagation();
+      const offerTitle = e.target.textContent.split(` + €`)[0];
+      for (let offer of this._offers) {
+        if (offerTitle === offer.title) {
+          this._price += +offer.price;
+          offer.accepted = true;
+          break;
+        }
+      }
+      this._partialUpdate();
+
+      this._onSubmit({
+        id: this._id,
+        price: this._price,
+        offers: this._offers,
+        type: this._type,
+        city: this._city,
+        timeline: this._timeline,
+        duration: this._duration
+      });
     }
+  }
+
+  _partialUpdate() {
+    this._unbind();
+    const oldElement = this._element;
+    this._element.parentNode.replaceChild(this.render(), oldElement);
+    oldElement.remove();
+    this._bind();
   }
 
   _bind() {
     if (this._element) {
+      this._getUiElements();
+      this._ui.offersBlock.addEventListener(`click`, this._onClickOffer);
       this._element.addEventListener(`click`, this._onClickPointElement);
     }
   }
@@ -66,6 +107,13 @@ export default class Point extends Component {
   _unbind() {
     if (this._element) {
       this._element.removeEventListener(`click`, this._onClickPointElement);
+    }
+  }
+
+  _onClickPointElement(e) {
+    e.preventDefault();
+    if (typeof this._onClickPointElement === `function`) {
+      this._onElement();
     }
   }
 

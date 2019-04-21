@@ -28,6 +28,7 @@ export default class Component {
 
   destroy() {
     this._unbind();
+    this._ui = {};
     this._element = null;
   }
 
