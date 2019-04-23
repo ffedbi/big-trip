@@ -62,32 +62,6 @@ export default class Point extends Component {
     this._ui.offersBlock = this._element.querySelector(`.trip-point__offers`);
   }
 
-  _onClickOffer(e) {
-    if (e.target.tagName.toLowerCase() === `button` || typeof this._onSubmit === `function`) {
-      e.preventDefault();
-      e.stopPropagation();
-      const offerTitle = e.target.textContent.split(` + €`)[0];
-      for (let offer of this._offers) {
-        if (offerTitle === offer.title) {
-          this._price += +offer.price;
-          offer.accepted = true;
-          break;
-        }
-      }
-      this._partialUpdate();
-
-      this._onSubmit({
-        id: this._id,
-        price: this._price,
-        offers: this._offers,
-        type: this._type,
-        city: this._city,
-        timeline: this._timeline,
-        duration: this._duration
-      });
-    }
-  }
-
   _partialUpdate() {
     this._unbind();
     const oldElement = this._element;
@@ -114,6 +88,26 @@ export default class Point extends Component {
     e.preventDefault();
     if (typeof this._onClickPointElement === `function`) {
       this._onElement();
+    }
+  }
+
+  _onClickOffer(e) {
+    if (e.target.tagName.toLowerCase() === `button` || typeof this._onSubmit === `function`) {
+      e.preventDefault();
+      e.stopPropagation();
+      const offerTitle = e.target.textContent.split(` + €`)[0];
+      for (let offer of this._offers) {
+        if (offerTitle === offer.title) {
+          offer.accepted = true;
+          break;
+        }
+      }
+      this._partialUpdate();
+
+      this._onSubmit({
+        id: this._id,
+        offers: this._offers
+      });
     }
   }
 

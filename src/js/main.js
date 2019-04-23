@@ -35,6 +35,7 @@ const provider = new Provider({api, store, generateId: getId});
 let points = null;
 let eventsDestination = null;
 let eventsOffers = null;
+let filteredEvents = null;
 
 const getSortedEventByDay = (events) => {
   let result = {};
@@ -74,8 +75,9 @@ const renderPoints = (data, dist) => {
     };
 
     point.onClickOffer = (newData) => {
-      trip.update(newData);
-      points[newData.id] = newData;
+      if (points[newData.id] === newData.id) {
+        points[newData.id].offers = newData.offers;
+      }
       getTotalPrice(points);
     };
 
@@ -93,7 +95,8 @@ const renderPoints = (data, dist) => {
           if (response) {
             point.update(response);
             point.render();
-            dist.replaceChild(point.element, trip.element);
+            filteredEvents = getEvents(points);
+            renderDays(points);
           }
         })
         .catch(() => {
@@ -126,6 +129,7 @@ const renderPoints = (data, dist) => {
         });
 
       deleteArrayItem(points, item);
+      filteredEvents = getEvents(points);
       getTotalPrice(points);
     };
 
@@ -150,8 +154,9 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
     provider.createPoint({point: convertNewEventData(newData)})
       .then((newPoint) => {
         newPointEdit.unlockToSave();
-        points.push(newPoint);
+        points.unshift(newPoint);
         getTotalPrice(points);
+        filteredEvents = getEvents(points);
         renderDays(points);
       })
       .catch(() => {
@@ -167,7 +172,9 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
   newPointEdit.onDelete = () => {
     newPointEdit.lockToDeleting();
     newPointEdit.destroy();
+    filteredEvents = getEvents(points);
     renderDays(points);
+
     BUTTON_NEW_EVENT.disabled = false;
   };
 
@@ -183,6 +190,9 @@ const getTotalPrice = (arrEvents) => {
   let finalAmount = 0;
   for (let item of arrEvents) {
     finalAmount += +item[`price`];
+    // let offerPrice = item.offers.filter((it) => it.accepted).map((it) => it.price);
+    // console.log([...offerPrice]);
+    //finalAmount += +[...offerPrice]
   }
 
   TOTAL_PRICE_SECTION.textContent = `€ ${finalAmount}`;
@@ -193,14 +203,28 @@ const renderFilters = (data, section, type) => {
     const filter = new Filter(item, type);
 
     filter.onFilter = () => {
+      const newPointData = filteredEvents[filter.name];
+      if (newPointData.length === 0) {
+        return;
+      }
       clearSection(DAYS_SECTION);
-      let newPointData = filterPoint(points, filter.name);
       renderDays(newPointData);
     };
 
     filter.render();
     section.appendChild(filter.element);
   }
+};
+
+const eventsName = [`everything`, `future`, `past`, `price`, `time`, `event`];
+
+const getEvents = (arr) => {
+  let res = {};
+  let arrRes = arr.slice();
+  for (let name of eventsName) {
+    res[name] = filterPoint(arrRes, name);
+  }
+  return res;
 };
 
 const filterPoint = (events, filterName) => {
@@ -268,6 +292,7 @@ document.addEventListener(`DOMContentLoaded`, () => {
       points = responseEvents;
       eventsDestination = responseDestinations;
       eventsOffers = responseOffers;
+      filteredEvents = getEvents(points);
       getTotalPrice(points);
       renderDays(points);
     })
