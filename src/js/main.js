@@ -36,6 +36,7 @@ let points = null;
 let eventsDestination = null;
 let eventsOffers = null;
 let filteredEvents = null;
+let stateEvents = null;
 
 const getSortedEventByDay = (events) => {
   let result = {};
@@ -49,7 +50,6 @@ const getSortedEventByDay = (events) => {
 
   return result;
 };
-
 const renderDays = (events) => {
   clearSection(DAYS_SECTION);
   const pointSortedDay = getSortedEventByDay(events);
@@ -61,7 +61,6 @@ const renderDays = (events) => {
     renderPoints(eventList, distEvents);
   });
 };
-
 const renderPoints = (data, dist) => {
   clearSection(dist);
   for (let item of data) {
@@ -154,10 +153,10 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
     provider.createPoint({point: convertNewEventData(newData)})
       .then((newPoint) => {
         newPointEdit.unlockToSave();
-        points.unshift(newPoint);
+        points.push(newPoint);
         getTotalPrice(points);
         filteredEvents = getEvents(points);
-        renderDays(points);
+        renderDays(filteredEvents[stateEvents]);
       })
       .catch(() => {
         newPointEdit.shake();
@@ -174,7 +173,6 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
     newPointEdit.destroy();
     filteredEvents = getEvents(points);
     renderDays(points);
-
     BUTTON_NEW_EVENT.disabled = false;
   };
 
@@ -190,11 +188,8 @@ const getTotalPrice = (arrEvents) => {
   let finalAmount = 0;
   for (let item of arrEvents) {
     finalAmount += +item[`price`];
-    // let offerPrice = item.offers.filter((it) => it.accepted).map((it) => it.price);
-    // console.log([...offerPrice]);
-    //finalAmount += +[...offerPrice]
+    finalAmount += +item.offers.filter((it) => it.accepted).reduce((acc, offer) => acc + offer.price, false);
   }
-
   TOTAL_PRICE_SECTION.textContent = `€ ${finalAmount}`;
 };
 
@@ -203,6 +198,12 @@ const renderFilters = (data, section, type) => {
     const filter = new Filter(item, type);
 
     filter.onFilter = () => {
+      if (filter.type) {
+        let data = sortingName[filter.name](filteredEvents.past);
+        renderDays(data);
+        return;
+      }
+
       const newPointData = filteredEvents[filter.name];
       if (newPointData.length === 0) {
         return;
@@ -216,7 +217,30 @@ const renderFilters = (data, section, type) => {
   }
 };
 
-const eventsName = [`everything`, `future`, `past`, `price`, `time`, `event`];
+let priceFlag = true;
+let timeFlag = true;
+const eventsName = [`everything`, `future`, `past`];
+const sortingName = {
+  event(arr) {
+    return arr;
+  },
+  price(arr) {
+    priceFlag = !priceFlag;
+    let sortP = {
+      'asc': (a, b) => b.price - a.price,
+      'desc': (a, b) => a.price - b.price,
+    };
+    return arr.sort(sortP[priceFlag ? 'asc' : 'desc']);
+  },
+  time(arr) {
+    timeFlag = !timeFlag;
+    let sortT = {
+      'asc': (a, b) => b.timeline[0] - a.timeline[0],
+      'desc': (a, b) => a.timeline[0] - b.timeline[0],
+    };
+    return arr.sort(sortT[timeFlag ? 'asc' : 'desc']);
+  },
+};
 
 const getEvents = (arr) => {
   let res = {};
@@ -227,18 +251,28 @@ const getEvents = (arr) => {
   return res;
 };
 
-const filterPoint = (events, filterName) => {
-  let result = events.slice();
+const filterPoint = (arr, filterName) => {
+  let result = arr.slice();
   const name = filterName.toLowerCase();
   switch (name) {
     case `everything`:
       return result;
-    case `offers`:
-      return [];
     case `future`:
       return result.filter((item) => new Date() < new Date(item.timeline[0]));
     case `past`:
       return result.filter((item) => new Date() > new Date(item.timeline[0]));
+    default:
+      return result;
+  }
+};
+
+/*
+const sortingPoints = (arr, filterName) => {
+  let result = arr.slice();
+  const name = filterName.toLowerCase();
+  switch (name) {
+    case `offers`:
+      return [];
     case `price`:
       return result.sort((a, b) => b.price - a.price);
     case `time`:
@@ -246,7 +280,7 @@ const filterPoint = (events, filterName) => {
     default:
       return result;
   }
-};
+}; */
 
 const onBtnStatisticClick = (e) => {
   e.preventDefault();
@@ -261,7 +295,6 @@ const onBtnStatisticClick = (e) => {
     initStat(points);
   }
 };
-
 const onBtnTableClick = (e) => {
   e.preventDefault();
   if (!e.target.classList.contains(ACTIVE_BUTTON_CLASS)) {
@@ -276,11 +309,9 @@ const onBtnTableClick = (e) => {
     BUTTON_NEW_EVENT.disabled = false;
   }
 };
-
 window.addEventListener(`offline`, () => {
   document.title = `${document.title}[OFFLINE]`;
 });
-
 window.addEventListener(`online`, () => {
   document.title = document.title.split(`[OFFLINE]`)[0];
   provider.syncPoints();
@@ -302,6 +333,6 @@ document.addEventListener(`DOMContentLoaded`, () => {
 });
 
 renderFilters(DATA_FILTERS, FILTERS_SECTION);
-renderFilters(DATA_SORTING_FILTERS, SORTING_SECTION, `sorting`);
+renderFilters(DATA_SORTING_FILTERS, SORTING_SECTION, `sort`);
 BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
 BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);
