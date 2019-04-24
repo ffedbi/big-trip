@@ -1,4 +1,5 @@
 import DOMPurify from 'dompurify';
+import moment from 'moment';
 
 export const clearSection = (section) => {
   section.innerHTML = ``;
@@ -29,6 +30,10 @@ export const convertNewEventData = (data) => {
 export const deleteArrayItem = (array, id) => {
   array.splice(id, 1);
   return array;
+};
+
+export const getDurationEvent = (arr) => {
+  return moment.duration(moment(arr[1]).diff(moment(arr[0])));
 };
 
 export const getId = () => Date.now() + Math.random();

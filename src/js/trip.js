@@ -242,6 +242,7 @@ export default class Trip extends Component {
       flatpickr(this._ui.inputTimeStart, {
         enableTime: true,
         altInput: true,
+        [`time_24hr`]: false,
         altFormat: `H:i`,
         dateFormat: `Z`,
         minuteIncrement: 1,
@@ -252,6 +253,7 @@ export default class Trip extends Component {
       flatpickr(this._ui.inputTimeEnd, {
         enableTime: true,
         altInput: true,
+        [`time_24hr`]: false,
         altFormat: `H:i`,
         dateFormat: `Z`,
         minuteIncrement: 1,

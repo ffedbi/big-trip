@@ -1,5 +1,6 @@
 import Component from "./component";
 import moment from "moment";
+import {getDurationEvent} from "./utils";
 
 const MAX_NUMBER_OFFERS = 3;
 
@@ -112,7 +113,7 @@ export default class Point extends Component {
   }
 
   static _getDurationEvent(arr) {
-    const duration = moment.duration(moment(arr[1]).diff(moment(arr[0])));
+    const duration = getDurationEvent(arr);
     const days = duration.days();
     return days > 0 ? `${days}D ${duration.hours()}H ${duration.minutes()}M` : `${duration.hours()}H ${duration.minutes()}M`;
   }
