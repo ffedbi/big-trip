@@ -1,4 +1,4 @@
-import {clearSection, convertNewEventData, getId, deleteArrayItem} from './utils';
+import {clearSection, convertNewEventData, getId, deleteArrayItem, getDurationEvent} from './utils';
 import {DATA_FILTERS, DATA_SORTING_FILTERS, POINT_DEFAULT_DATA} from './data';
 import {initStat} from "./statictic";
 import Point from "./point";
@@ -7,8 +7,9 @@ import Filter from "./filter";
 import API from "./api";
 import Provider from "./provider";
 import Store from "./store";
-import moment from 'moment';
 import TravelDay from './travel-day';
+import Sorter from "./sorter";
+import moment from 'moment';
 
 const DAYS_SECTION = document.querySelector(`.trip-points`);
 const FILTERS_SECTION = document.querySelector(`.trip-filter`);
@@ -20,11 +21,12 @@ const BUTTON_TABLE = document.querySelector(`.view-switch__item[href="#table"]`)
 const BUTTON_STATISTIC = document.querySelector(`.view-switch__item[href="#stats"]`);
 const TOTAL_PRICE_SECTION = document.querySelector(`.trip__total-cost`);
 const BUTTON_NEW_EVENT = document.querySelector(`.new-event`);
+const EVENTS_GROUP_NAME = [`everything`, `future`, `past`];
+const EVENT_ERROR_STYLE = `1px solid #ff0000`;
 const Messages = {
   loading: `Loading route...`,
   error: `Something went wrong while loading your route info. Check your connection or try again later`,
 };
-const ERROR_STYLE = `1px solid #ff0000`;
 DAYS_SECTION.textContent = Messages.loading;
 
 const POINT_STORE_KEY = `points-store-key`;
@@ -35,6 +37,37 @@ const provider = new Provider({api, store, generateId: getId});
 let points = null;
 let eventsDestination = null;
 let eventsOffers = null;
+
+let activeFilter = `everything`;
+let activeSort = `event`;
+let load = false;
+let filteredEvents = null;
+let currentData = null;
+
+let priceFlag = true;
+let timeFlag = true;
+
+const FnSorting = {
+  event(arr) {
+    return arr.sort((a, b) => a.id - b.id);
+  },
+  price(arr) {
+    priceFlag = !priceFlag;
+    const sortP = {
+      'asc': (a, b) => b.price - a.price,
+      'desc': (a, b) => a.price - b.price,
+    };
+    return arr.sort(sortP[priceFlag ? `asc` : `desc`]);
+  },
+  time(arr) {
+    timeFlag = !timeFlag;
+    const sortT = {
+      'asc': (a, b) => getDurationEvent(b.timeline) - getDurationEvent(a.timeline),
+      'desc': (a, b) => getDurationEvent(a.timeline) - getDurationEvent(b.timeline),
+    };
+    return arr.sort(sortT[timeFlag ? `asc` : `desc`]);
+  },
+};
 
 const getSortedEventByDay = (events) => {
   let result = {};
@@ -74,8 +107,9 @@ const renderPoints = (data, dist) => {
     };
 
     point.onClickOffer = (newData) => {
-      trip.update(newData);
-      points[newData.id] = newData;
+      if (points[newData.id] === newData.id) {
+        points[newData.id].offers = newData.offers;
+      }
       getTotalPrice(points);
     };
 
@@ -93,12 +127,13 @@ const renderPoints = (data, dist) => {
           if (response) {
             point.update(response);
             point.render();
-            dist.replaceChild(point.element, trip.element);
+            filteredEvents = getEventsGroups();
+            renderDays(filteredEvents[activeFilter]);
           }
         })
         .catch(() => {
           trip.shake();
-          trip.element.style.border = ERROR_STYLE;
+          trip.element.style.border = EVENT_ERROR_STYLE;
         })
         .then(() => {
           trip.unlockToSave();
@@ -109,27 +144,37 @@ const renderPoints = (data, dist) => {
     };
 
     trip.onDelete = ({id}) => {
+      load = true;
       trip.lockToDeleting();
       provider.deletePoint({id})
         .then(() => provider.getPoints())
-        .then(renderDays)
+        .then((response) => {
+          getSortedEventByDay(response);
+          renderDays(response);
+          renderSorting(DATA_SORTING_FILTERS, SORTING_SECTION);
+        })
         .then(() => {
           trip.unlockToDelete();
         })
         .catch(() => {
           trip.shake();
-          trip.element.style.border = ERROR_STYLE;
+          trip.element.style.border = EVENT_ERROR_STYLE;
         })
         .then(() => {
           trip.unlockToDelete();
           trip.destroy();
+          load = false;
         });
 
       deleteArrayItem(points, item);
+      filteredEvents = getEventsGroups();
       getTotalPrice(points);
     };
 
     trip.onKeydownEsc = () => {
+      if (load) {
+        return;
+      }
       point.render();
       dist.replaceChild(point.element, trip.element);
       trip.destroy();
@@ -152,11 +197,13 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
         newPointEdit.unlockToSave();
         points.push(newPoint);
         getTotalPrice(points);
-        renderDays(points);
+        filteredEvents = getEventsGroups();
+        renderSorting(DATA_SORTING_FILTERS, SORTING_SECTION);
+        renderDays(filteredEvents[activeFilter]);
       })
       .catch(() => {
         newPointEdit.shake();
-        newPointEdit.element.style.border = ERROR_STYLE;
+        newPointEdit.element.style.border = EVENT_ERROR_STYLE;
       })
       .then(() => {
         newPointEdit.element.style.border = ``;
@@ -167,14 +214,15 @@ BUTTON_NEW_EVENT.addEventListener(`click`, () => {
   newPointEdit.onDelete = () => {
     newPointEdit.lockToDeleting();
     newPointEdit.destroy();
-    renderDays(points);
+    filteredEvents = getEventsGroups();
+    renderDays(filteredEvents[activeFilter]);
     BUTTON_NEW_EVENT.disabled = false;
   };
 
   newPointEdit.onKeydownEsc = () => {
     newPointEdit.lockToDeleting();
     newPointEdit.destroy();
-    renderDays(points);
+    renderDays(filteredEvents[activeFilter]);
     BUTTON_NEW_EVENT.disabled = false;
   };
 });
@@ -183,19 +231,24 @@ const getTotalPrice = (arrEvents) => {
   let finalAmount = 0;
   for (let item of arrEvents) {
     finalAmount += +item[`price`];
+    finalAmount += +item.offers.filter((it) => it.accepted).reduce((acc, offer) => acc + offer.price, false);
   }
-
   TOTAL_PRICE_SECTION.textContent = `€ ${finalAmount}`;
 };
 
-const renderFilters = (data, section, type) => {
+const renderFilters = (data, section) => {
   for (let item of data) {
-    const filter = new Filter(item, type);
+    const filter = new Filter(item);
 
     filter.onFilter = () => {
-      clearSection(DAYS_SECTION);
-      let newPointData = filterPoint(points, filter.name);
-      renderDays(newPointData);
+      BUTTON_NEW_EVENT.disabled = false;
+      if (!filteredEvents[filter.name].length) {
+        return;
+      }
+      renderSorting(DATA_SORTING_FILTERS, SORTING_SECTION);
+      activeFilter = filter.name;
+      currentData = filteredEvents[activeFilter];
+      renderDays(currentData);
     };
 
     filter.render();
@@ -203,22 +256,45 @@ const renderFilters = (data, section, type) => {
   }
 };
 
-const filterPoint = (events, filterName) => {
-  let result = events.slice();
+const renderSorting = (data, section) => {
+  clearSection(section);
+  for (let item of data) {
+    const sort = new Sorter(item);
+
+    sort.onSort = () => {
+      BUTTON_NEW_EVENT.disabled = false;
+      activeSort = sort.name;
+      let sortingEvents = FnSorting[activeSort](currentData);
+      if (activeSort === `event`) {
+        renderDays(sortingEvents);
+        return;
+      }
+      renderPoints(sortingEvents, DAYS_SECTION);
+    };
+
+    sort.render();
+    section.appendChild(sort.element);
+  }
+};
+
+const getEventsGroups = () => {
+  let res = {};
+  for (let name of EVENTS_GROUP_NAME) {
+    res[name] = filterPoint(points, name);
+  }
+  return res;
+};
+
+const filterPoint = (arr, filterName) => {
+  let result = arr.slice();
   const name = filterName.toLowerCase();
   switch (name) {
     case `everything`:
       return result;
-    case `offers`:
-      return [];
     case `future`:
       return result.filter((item) => new Date() < new Date(item.timeline[0]));
     case `past`:
       return result.filter((item) => new Date() > new Date(item.timeline[0]));
-    case `price`:
-      return result.sort((a, b) => b.price - a.price);
-    case `time`:
-      return result.sort((a, b) => b.timeline[0] - a.timeline[0]);
     default:
       return result;
   }
@@ -268,8 +344,10 @@ document.addEventListener(`DOMContentLoaded`, () => {
       points = responseEvents;
       eventsDestination = responseDestinations;
       eventsOffers = responseOffers;
+      filteredEvents = getEventsGroups();
       getTotalPrice(points);
-      renderDays(points);
+      currentData = filteredEvents[activeFilter];
+      renderDays(filteredEvents[activeFilter]);
     })
     .catch(() => {
       DAYS_SECTION.textContent = Messages.error;
@@ -277,6 +355,9 @@ document.addEventListener(`DOMContentLoaded`, () => {
 });
 
 renderFilters(DATA_FILTERS, FILTERS_SECTION);
-renderFilters(DATA_SORTING_FILTERS, SORTING_SECTION, `sorting`);
+renderSorting(DATA_SORTING_FILTERS, SORTING_SECTION);
 BUTTON_STATISTIC.addEventListener(`click`, onBtnStatisticClick);
 BUTTON_TABLE.addEventListener(`click`, onBtnTableClick);
+
+// rename getEventsGroups(arr);
+// rename currentData;

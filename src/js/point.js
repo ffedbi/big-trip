@@ -1,5 +1,6 @@
 import Component from "./component";
 import moment from "moment";
+import {getDurationEvent} from "./utils";
 
 const MAX_NUMBER_OFFERS = 3;
 
@@ -62,32 +63,6 @@ export default class Point extends Component {
     this._ui.offersBlock = this._element.querySelector(`.trip-point__offers`);
   }
 
-  _onClickOffer(e) {
-    if (e.target.tagName.toLowerCase() === `button` || typeof this._onSubmit === `function`) {
-      e.preventDefault();
-      e.stopPropagation();
-      const offerTitle = e.target.textContent.split(` + €`)[0];
-      for (let offer of this._offers) {
-        if (offerTitle === offer.title) {
-          this._price += +offer.price;
-          offer.accepted = true;
-          break;
-        }
-      }
-      this._partialUpdate();
-
-      this._onSubmit({
-        id: this._id,
-        price: this._price,
-        offers: this._offers,
-        type: this._type,
-        city: this._city,
-        timeline: this._timeline,
-        duration: this._duration
-      });
-    }
-  }
-
   _partialUpdate() {
     this._unbind();
     const oldElement = this._element;
@@ -117,8 +92,28 @@ export default class Point extends Component {
     }
   }
 
+  _onClickOffer(e) {
+    if (e.target.tagName.toLowerCase() === `button` || typeof this._onSubmit === `function`) {
+      e.preventDefault();
+      e.stopPropagation();
+      const offerTitle = e.target.textContent.split(` + €`)[0];
+      for (let offer of this._offers) {
+        if (offerTitle === offer.title) {
+          offer.accepted = true;
+          break;
+        }
+      }
+      this._partialUpdate();
+
+      this._onSubmit({
+        id: this._id,
+        offers: this._offers
+      });
+    }
+  }
+
   static _getDurationEvent(arr) {
-    const duration = moment.duration(moment(arr[1]).diff(moment(arr[0])));
+    const duration = getDurationEvent(arr);
     const days = duration.days();
     return days > 0 ? `${days}D ${duration.hours()}H ${duration.minutes()}M` : `${duration.hours()}H ${duration.minutes()}M`;
   }

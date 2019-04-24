@@ -145,24 +145,24 @@ export default class Trip extends Component {
   }
 
   lockToSaving() {
-    this._ui.btnReset.disabled = true;
-    this._ui.btnSave.disabled = true;
+    this._ui.btnReset.lock = true;
+    this._ui.btnSave.lock = true;
     this._ui.btnSave.textContent = `Saving...`;
   }
 
   unlockToSave() {
-    this._ui.btnReset.disabled = false;
-    this._ui.btnSave.disabled = false;
+    this._ui.btnReset.lock = false;
+    this._ui.btnSave.lock = false;
     this._ui.btnSave.textContent = `Save`;
   }
 
   lockToDeleting() {
-    this._ui.btnReset.disabled = true;
+    this._ui.btnReset.lock = true;
     this._ui.btnReset.textContent = `Deleting...`;
   }
 
   unlockToDelete() {
-    this._ui.btnReset.disabled = false;
+    this._ui.btnReset.lock = false;
     this._ui.btnReset.textContent = `Delete`;
   }
 
@@ -242,6 +242,7 @@ export default class Trip extends Component {
       flatpickr(this._ui.inputTimeStart, {
         enableTime: true,
         altInput: true,
+        [`time_24hr`]: false,
         altFormat: `H:i`,
         dateFormat: `Z`,
         minuteIncrement: 1,
@@ -252,6 +253,7 @@ export default class Trip extends Component {
       flatpickr(this._ui.inputTimeEnd, {
         enableTime: true,
         altInput: true,
+        [`time_24hr`]: false,
         altFormat: `H:i`,
         dateFormat: `Z`,
         minuteIncrement: 1,
@@ -330,7 +332,7 @@ export default class Trip extends Component {
     const value = +e.target.value;
 
     if (value < MIN_PRICE || !Number.isInteger(value)) {
-      this._ui.btnSave.disabled = true;
+      this._ui.btnSave.lock = true;
       this.shake();
       return;
     }
@@ -341,11 +343,13 @@ export default class Trip extends Component {
   _onChangeTimeStart() {
     const inputValue = this._ui.inputTimeStart.value;
     this._timeline[0] = new Date(moment(inputValue)).getTime();
+    this._partialUpdate();
   }
 
   _onChangeTimeEnd() {
     const inputValue = this._ui.inputTimeEnd.value;
     this._timeline[1] = new Date(moment(inputValue)).getTime();
+    this._partialUpdate();
   }
 
   _onSubmitBtnClick(e) {
@@ -377,7 +381,6 @@ export default class Trip extends Component {
       if (e.target.checked) {
         for (let offer of this._offers) {
           if (offerPrice === offer.price && offerTitle === offer.title) {
-            this._price += +offerPrice;
             offer.accepted = true;
             break;
           }
@@ -386,16 +389,10 @@ export default class Trip extends Component {
       } else {
         for (let offer of this._offers) {
           if (offerPrice === offer.price && offerTitle === offer.title) {
-            this._price -= offerPrice;
             offer.accepted = false;
             break;
           }
         }
-
-        if (this._price <= MIN_PRICE) {
-          this._price = MIN_PRICE;
-        }
-
         this._partialUpdate();
       }
     }

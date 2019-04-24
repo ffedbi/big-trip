@@ -25,7 +25,8 @@ export const DATA_SORTING_FILTERS = [
     description: `Price`
   },
   {
-    description: `Offers`
+    description: `Offers`,
+    disabled: true
   }
 ];
 
