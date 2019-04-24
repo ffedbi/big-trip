@@ -42,7 +42,7 @@ let activeFilter = `everything`;
 let activeSort = `event`;
 let load = false;
 let eventsFilteredGroups = null;
-let selectedEvents = null;
+let selectedEventGroup = null;
 
 let priceFlag = true;
 let timeFlag = true;
@@ -249,8 +249,8 @@ const renderFilters = (data, section) => {
       }
       renderSorting(DATA_SORTING_FILTERS, SORTING_SECTION);
       activeFilter = filter.name;
-      selectedEvents = eventsFilteredGroups[activeFilter];
-      renderDays(selectedEvents);
+      selectedEventGroup = eventsFilteredGroups[activeFilter];
+      renderDays(selectedEventGroup);
     };
 
     filter.render();
@@ -266,7 +266,7 @@ const renderSorting = (data, section) => {
     sort.onSort = () => {
       BUTTON_NEW_EVENT.disabled = false;
       activeSort = sort.name;
-      let sortingEvents = FnSorting[activeSort](selectedEvents);
+      let sortingEvents = FnSorting[activeSort](selectedEventGroup);
       if (activeSort === `event`) {
         renderDays(sortingEvents);
         return;
@@ -348,7 +348,7 @@ document.addEventListener(`DOMContentLoaded`, () => {
       eventsOffers = responseOffers;
       eventsFilteredGroups = getGroupsEvents();
       getTotalPrice(points);
-      selectedEvents = eventsFilteredGroups[activeFilter];
+      selectedEventGroup = eventsFilteredGroups[activeFilter];
       renderDays(eventsFilteredGroups[activeFilter]);
     })
     .catch(() => {
