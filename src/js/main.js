@@ -35,8 +35,16 @@ const provider = new Provider({api, store, generateId: getId});
 let points = null;
 let eventsDestination = null;
 let eventsOffers = null;
-let filteredEvents = null;
+
 let stateEvents = null;
+
+// ---------------------
+let deliting = false;
+let priceFlag = true;
+let timeFlag = true;
+let filteredEvents = null;
+// let currentSorting = `everyting`; // future, past
+// ---------------------
 
 const getSortedEventByDay = (events) => {
   let result = {};
@@ -111,6 +119,7 @@ const renderPoints = (data, dist) => {
     };
 
     trip.onDelete = ({id}) => {
+      deliting = true;
       trip.lockToDeleting();
       provider.deletePoint({id})
         .then(() => provider.getPoints())
@@ -125,6 +134,7 @@ const renderPoints = (data, dist) => {
         .then(() => {
           trip.unlockToDelete();
           trip.destroy();
+          deliting = false;
         });
 
       deleteArrayItem(points, item);
@@ -133,6 +143,9 @@ const renderPoints = (data, dist) => {
     };
 
     trip.onKeydownEsc = () => {
+      if (deliting) {
+        return;
+      }
       point.render();
       dist.replaceChild(point.element, trip.element);
       trip.destroy();
@@ -198,18 +211,16 @@ const renderFilters = (data, section, type) => {
     const filter = new Filter(item, type);
 
     filter.onFilter = () => {
-      if (filter.type) {
-        let data = sortingName[filter.name](filteredEvents.past);
-        renderDays(data);
-        return;
+      let currentData = filteredEvents[filter.name];
+      if (filter.name !== `time` && filter.name !== `price`) {
+
+        renderDays(currentData);
       }
 
-      const newPointData = filteredEvents[filter.name];
-      if (newPointData.length === 0) {
-        return;
+      if (filter.name === `time` || filter.name === `price`) {
+        let action = sortingName[filter.name];
+        renderPoints(action(filteredEvents[filter[`past`]]), DAYS_SECTION);
       }
-      clearSection(DAYS_SECTION);
-      renderDays(newPointData);
     };
 
     filter.render();
@@ -217,9 +228,7 @@ const renderFilters = (data, section, type) => {
   }
 };
 
-let priceFlag = true;
-let timeFlag = true;
-const eventsName = [`everything`, `future`, `past`];
+const eventsName = [`everything`, `future`, `past`]; // !!!
 const sortingName = {
   event(arr) {
     return arr;
@@ -230,7 +239,7 @@ const sortingName = {
       'asc': (a, b) => b.price - a.price,
       'desc': (a, b) => a.price - b.price,
     };
-    return arr.sort(sortP[priceFlag ? 'asc' : 'desc']);
+    return arr.sort(sortP[priceFlag ? `asc` : `desc`]);
   },
   time(arr) {
     timeFlag = !timeFlag;
@@ -238,7 +247,7 @@ const sortingName = {
       'asc': (a, b) => b.timeline[0] - a.timeline[0],
       'desc': (a, b) => a.timeline[0] - b.timeline[0],
     };
-    return arr.sort(sortT[timeFlag ? 'asc' : 'desc']);
+    return arr.sort(sortT[timeFlag ? `asc` : `desc`]);
   },
 };
 
@@ -265,22 +274,6 @@ const filterPoint = (arr, filterName) => {
       return result;
   }
 };
-
-/*
-const sortingPoints = (arr, filterName) => {
-  let result = arr.slice();
-  const name = filterName.toLowerCase();
-  switch (name) {
-    case `offers`:
-      return [];
-    case `price`:
-      return result.sort((a, b) => b.price - a.price);
-    case `time`:
-      return result.sort((a, b) => b.timeline[0] - a.timeline[0]);
-    default:
-      return result;
-  }
-}; */
 
 const onBtnStatisticClick = (e) => {
   e.preventDefault();

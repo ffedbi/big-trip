@@ -33,10 +33,6 @@ export default class Filter extends Component {
     return this._description.toLowerCase();
   }
 
-  get type() {
-    return this._type;
-  }
-
   set onFilter(fn) {
     this._onFilter = fn;
   }
